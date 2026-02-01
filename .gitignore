@@ -37,3 +37,10 @@ __screenshots__/
 
 # SQLite database
 server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
+
+# Environment variables
+.env
+.env.production
+
