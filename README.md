@@ -39,8 +39,8 @@ npm run build
 
 ## Future Upgrades
 
-- **Import browser bookmarks** — Parse an exported HTML bookmarks file to bulk-import existing bookmarks
-- **Auto-fetch URL metadata** — Automatically pull page title, description, and favicon when a URL is pasted
+- **Import browser bookmarks** — ✅ Implemented (Parses exported HTML bookmarks file)
+- **Auto-fetch URL metadata** — ✅ Implemented (Automatically pulls page title/description and attempts to categorize)
 - **Tags** — Add a tagging system (many-to-many) alongside categories for more flexible organization
 - **Supabase migration** — Move from local SQLite to Supabase for cloud-hosted Postgres, auth, and real-time sync
 - **Deploy to DigitalOcean** — Deploy the app to a DigitalOcean droplet for access from anywhere

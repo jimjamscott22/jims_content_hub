@@ -85,9 +85,29 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
     bookmarks.value = bookmarks.value.filter(b => b.id !== id)
   }
 
+  async function importBookmarks(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await fetch('/api/bookmarks/import', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err.error || 'Import failed')
+    }
+
+    // Refresh list to show new bookmarks
+    await fetchBookmarks()
+    return await res.json()
+  }
+
   return {
     bookmarks, currentBookmark, isLoading, error,
     fetchBookmarks, fetchBookmark, createBookmark,
     updateBookmark, toggleRead, deleteBookmark,
+    importBookmarks,
   }
 })

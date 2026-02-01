@@ -1,7 +1,57 @@
 import { Router } from 'express'
+import multer from 'multer'
+import { load } from 'cheerio'
 import db from '../db.js'
 
 const router = Router()
+const upload = multer({ storage: multer.memoryStorage() })
+
+// POST /api/bookmarks/import
+router.post('/import', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' })
+  }
+
+  try {
+    const html = req.file.buffer.toString('utf-8')
+    const $ = load(html)
+    const bookmarksToInsert = []
+
+    $('a').each((_, element) => {
+      const el = $(element)
+      const url = el.attr('href')
+      const title = el.text().trim() || url
+
+      // Simple validation
+      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+        bookmarksToInsert.push({ url, title })
+      }
+    })
+
+    if (bookmarksToInsert.length === 0) {
+      return res.status(400).json({ error: 'No valid bookmarks found in file' })
+    }
+
+    // Use transaction for bulk insert
+    const insert = db.transaction((bookmarks) => {
+      const stmt = db.prepare(`
+        INSERT INTO bookmarks (url, title, description, is_read)
+        VALUES (?, ?, 'Imported from browser', 0)
+      `)
+      for (const b of bookmarks) {
+        stmt.run(b.url, b.title)
+      }
+    })
+
+    insert(bookmarksToInsert)
+
+    res.json({ message: `Successfully imported ${bookmarksToInsert.length} bookmarks` })
+
+  } catch (error) {
+    console.error('Import error:', error)
+    res.status(500).json({ error: 'Failed to process import file' })
+  }
+})
 
 // GET /api/bookmarks (with optional query filters)
 router.get('/', (req, res) => {
