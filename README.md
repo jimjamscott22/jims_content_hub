@@ -1,6 +1,6 @@
 # jims_content_hub
 
-This template should help get you started developing with Vue 3 in Vite.
+A simple bookmark, reading list, and other web content organizer.
 
 ## Recommended IDE Setup
 
