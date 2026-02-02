@@ -39,8 +39,12 @@ __screenshots__/
 server/data/*.db
 server/data/*.db-wal
 server/data/*.db-shm
+server/data/*.db-journal
+server/data/*.sqlite
+server/data/*.sqlite3
+server/data/*.sqlite-wal
+server/data/*.sqlite-shm
 
 # Environment variables
 .env
 .env.production
-

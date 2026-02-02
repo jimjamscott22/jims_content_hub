@@ -5,7 +5,7 @@ defineProps({
 </script>
 
 <template>
-  <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+  <span class="inline-block rounded-full border border-cyan-100 bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-700">
     {{ name }}
   </span>
 </template>

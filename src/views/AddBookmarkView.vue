@@ -14,7 +14,8 @@ async function handleSubmit(data) {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-6">Add Bookmark</h1>
+    <h1 class="mb-2 text-3xl font-bold">Add Bookmark</h1>
+    <p class="mb-6 text-sm text-[var(--ink-muted)]">Drop in a URL and let auto-fill pull details for you.</p>
     <BookmarkForm @submit="handleSubmit">
       Add Bookmark
     </BookmarkForm>

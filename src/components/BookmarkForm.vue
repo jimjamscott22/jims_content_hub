@@ -61,45 +61,45 @@ function handleSubmit() {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="space-y-4 max-w-xl">
+  <form @submit.prevent="handleSubmit" class="panel max-w-2xl space-y-4 p-4 md:p-5">
     <div>
-      <label class="block text-sm font-medium mb-1">URL *</label>
+      <label class="mb-1 block text-sm font-semibold">URL *</label>
       <div class="flex gap-2">
         <input v-model="form.url" type="url" required
                @blur="!form.title && fetchMetadata()"
-               class="w-full px-3 py-2 border rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+               class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2" />
         <button type="button" @click="fetchMetadata" :disabled="isFetching"
-                class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer disabled:opacity-50 whitespace-nowrap">
+                class="cursor-pointer whitespace-nowrap rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 transition-colors hover:bg-cyan-100 disabled:opacity-50">
           {{ isFetching ? '...' : 'Auto-fill' }}
         </button>
       </div>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">Title *</label>
+      <label class="mb-1 block text-sm font-semibold">Title *</label>
       <input v-model="form.title" type="text" required
-             class="w-full px-3 py-2 border rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+             class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2" />
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">Description</label>
+      <label class="mb-1 block text-sm font-semibold">Description</label>
       <textarea v-model="form.description" rows="3"
-                class="w-full px-3 py-2 border rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2"></textarea>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">Category</label>
+      <label class="mb-1 block text-sm font-semibold">Category</label>
       <select v-model="form.category_id"
-              class="w-full px-3 py-2 border rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2">
         <option value="">Uncategorized</option>
         <option v-for="cat in categoryStore.categories" :key="cat.id" :value="cat.id">
           {{ cat.name }}
         </option>
       </select>
     </div>
-    <div class="flex items-center gap-2">
-      <input v-model="form.is_read" type="checkbox" id="is_read" class="rounded" />
-      <label for="is_read" class="text-sm">Mark as read</label>
+    <div class="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--bg-soft)] px-3 py-2">
+      <input v-model="form.is_read" type="checkbox" id="is_read" class="h-4 w-4 rounded accent-cyan-600" />
+      <label for="is_read" class="text-sm font-medium">Mark as read</label>
     </div>
     <button type="submit"
-            class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 cursor-pointer">
+            class="cursor-pointer rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 px-4 py-2 font-semibold text-white shadow-md shadow-cyan-700/35 transition-all hover:-translate-y-0.5 hover:from-cyan-500 hover:to-teal-600">
       <slot>Save</slot>
     </button>
   </form>

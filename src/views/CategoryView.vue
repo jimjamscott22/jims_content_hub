@@ -26,8 +26,8 @@ watch(() => props.id, loadBookmarks)
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-6">{{ categoryName }}</h1>
-    <p v-if="bookmarkStore.isLoading" class="text-gray-500">Loading...</p>
+    <h1 class="mb-4 text-3xl font-bold">{{ categoryName }}</h1>
+    <p v-if="bookmarkStore.isLoading" class="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-[var(--ink-muted)]">Loading...</p>
     <BookmarkList v-else :bookmarks="bookmarkStore.bookmarks" />
   </div>
 </template>

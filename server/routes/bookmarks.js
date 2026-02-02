@@ -83,6 +83,23 @@ router.get('/', (req, res) => {
   res.json(bookmarks)
 })
 
+// GET /api/bookmarks/stats
+router.get('/stats', (_req, res) => {
+  const stats = db.prepare(`
+    SELECT
+      COUNT(*) AS total,
+      SUM(CASE WHEN is_read = 1 THEN 1 ELSE 0 END) AS read,
+      SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) AS unread
+    FROM bookmarks
+  `).get()
+
+  res.json({
+    total: Number(stats?.total ?? 0),
+    read: Number(stats?.read ?? 0),
+    unread: Number(stats?.unread ?? 0),
+  })
+})
+
 // GET /api/bookmarks/:id
 router.get('/:id', (req, res) => {
   const bookmark = db.prepare(`

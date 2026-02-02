@@ -4,6 +4,8 @@ import { ref } from 'vue'
 export const useBookmarkStore = defineStore('bookmarks', () => {
   const bookmarks = ref([])
   const currentBookmark = ref(null)
+  const readingStats = ref({ total: 0, unread: 0, read: 0 })
+  const isReadingStatsLoading = ref(false)
   const isLoading = ref(false)
   const error = ref(null)
 
@@ -41,6 +43,19 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
     }
   }
 
+  async function fetchReadingStats() {
+    isReadingStatsLoading.value = true
+    try {
+      const res = await fetch('/api/bookmarks/stats')
+      if (!res.ok) throw new Error('Failed to load reading list stats')
+      readingStats.value = await res.json()
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      isReadingStatsLoading.value = false
+    }
+  }
+
   async function createBookmark(data) {
     const res = await fetch('/api/bookmarks', {
       method: 'POST',
@@ -53,6 +68,7 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
     }
     const bookmark = await res.json()
     bookmarks.value.unshift(bookmark)
+    await fetchReadingStats()
     return bookmark
   }
 
@@ -69,6 +85,7 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
     const updated = await res.json()
     const idx = bookmarks.value.findIndex(b => b.id === id)
     if (idx !== -1) bookmarks.value[idx] = updated
+    await fetchReadingStats()
     return updated
   }
 
@@ -77,12 +94,14 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
     const updated = await res.json()
     const idx = bookmarks.value.findIndex(b => b.id === id)
     if (idx !== -1) bookmarks.value[idx] = updated
+    await fetchReadingStats()
     return updated
   }
 
   async function deleteBookmark(id) {
     await fetch(`/api/bookmarks/${id}`, { method: 'DELETE' })
     bookmarks.value = bookmarks.value.filter(b => b.id !== id)
+    await fetchReadingStats()
   }
 
   async function importBookmarks(file) {
@@ -101,13 +120,14 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
 
     // Refresh list to show new bookmarks
     await fetchBookmarks()
+    await fetchReadingStats()
     return await res.json()
   }
 
   return {
-    bookmarks, currentBookmark, isLoading, error,
+    bookmarks, currentBookmark, readingStats, isReadingStatsLoading, isLoading, error,
     fetchBookmarks, fetchBookmark, createBookmark,
     updateBookmark, toggleRead, deleteBookmark,
-    importBookmarks,
+    importBookmarks, fetchReadingStats,
   }
 })

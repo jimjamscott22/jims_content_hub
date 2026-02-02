@@ -1,1 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+:root {
+  --bg-page: #f3f8fb;
+  --bg-surface: #ffffff;
+  --bg-soft: #ecf5fb;
+  --ink-strong: #0e2433;
+  --ink-muted: #4a6475;
+  --line: #d7e5f0;
+  --primary: #0f9aa8;
+  --primary-strong: #0b7884;
+  --accent: #f5b53d;
+  --danger: #e96a60;
+  --shadow-soft: 0 16px 40px -24px rgba(14, 36, 51, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+  color: var(--ink-strong);
+  background: radial-gradient(circle at 20% -10%, #d8f1f2 0%, transparent 50%),
+    radial-gradient(circle at 90% 5%, #ffe9ba 0%, transparent 38%), var(--bg-page);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.glass {
+  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, white 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 72%, white);
+}
+
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-soft);
+  border-radius: 16px;
+}
+
+.ui-focus-ring {
+  outline: none;
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.ui-focus-ring:focus {
+  border-color: color-mix(in srgb, var(--primary) 60%, white);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 260ms ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
