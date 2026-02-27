@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useCategoryStore } from '@/stores/categories'
+import TagInput from './TagInput.vue'
 
 const props = defineProps({
   initialData: { type: Object, default: null },
@@ -16,6 +17,8 @@ const form = ref({
   description: props.initialData?.description || '',
   category_id: props.initialData?.category_id || '',
   is_read: props.initialData?.is_read ? true : false,
+  is_favorite: props.initialData?.is_favorite ? true : false,
+  tag_ids: props.initialData?.tags?.map(t => t.id) || [],
 })
 
 const isFetching = ref(false)
@@ -94,9 +97,19 @@ function handleSubmit() {
         </option>
       </select>
     </div>
-    <div class="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--bg-soft)] px-3 py-2">
-      <input v-model="form.is_read" type="checkbox" id="is_read" class="h-4 w-4 rounded accent-cyan-600" />
-      <label for="is_read" class="text-sm font-medium">Mark as read</label>
+    <div>
+      <label class="mb-1 block text-sm font-semibold">Tags</label>
+      <TagInput v-model="form.tag_ids" />
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--bg-soft)] px-3 py-2">
+        <input v-model="form.is_read" type="checkbox" id="is_read" class="h-4 w-4 rounded accent-cyan-600" />
+        <label for="is_read" class="text-sm font-medium">Mark as read</label>
+      </div>
+      <div class="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--bg-soft)] px-3 py-2">
+        <input v-model="form.is_favorite" type="checkbox" id="is_favorite" class="h-4 w-4 rounded accent-amber-500" />
+        <label for="is_favorite" class="text-sm font-medium">⭐ Favorite</label>
+      </div>
     </div>
     <button type="submit"
             class="cursor-pointer rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 px-4 py-2 font-semibold text-white shadow-md shadow-cyan-700/35 transition-all hover:-translate-y-0.5 hover:from-cyan-500 hover:to-teal-600">

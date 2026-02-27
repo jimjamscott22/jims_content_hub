@@ -3,11 +3,13 @@ import { computed, onMounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBookmarkStore } from '@/stores/bookmarks'
 import BookmarkList from '@/components/BookmarkList.vue'
+import SortDropdown from '@/components/SortDropdown.vue'
 
 const route = useRoute()
 const router = useRouter()
 const bookmarkStore = useBookmarkStore()
 const readFilter = ref(parseReadFilter(route.query.read))
+const sortOrder = ref(route.query.sort || 'newest')
 const fileInput = ref(null)
 const isImporting = ref(false)
 
@@ -24,10 +26,19 @@ const stats = computed(() => {
   return { total, read, unread, categories }
 })
 
+const viewTitle = computed(() => {
+  if (route.query.favorites === '1') return '⭐ Favorites'
+  if (route.query.tag) return `Tag: ${route.query.tag_name || 'Tagged'}`
+  return 'All Bookmarks'
+})
+
 function loadBookmarks() {
   bookmarkStore.fetchBookmarks({
     search: route.query.search || '',
     is_read: readFilter.value,
+    is_favorite: route.query.favorites === '1' ? 1 : undefined,
+    tag_id: route.query.tag || undefined,
+    sort: sortOrder.value,
   })
 }
 
@@ -75,6 +86,8 @@ async function handleImport(event) {
 
 onMounted(loadBookmarks)
 watch(() => route.query.search, loadBookmarks)
+watch(() => route.query.favorites, loadBookmarks)
+watch(() => route.query.tag, loadBookmarks)
 watch(
   () => route.query.read,
   (value) => {
@@ -82,6 +95,7 @@ watch(
   },
 )
 watch(readFilter, loadBookmarks)
+watch(sortOrder, loadBookmarks)
 </script>
 
 <template>
@@ -89,7 +103,7 @@ watch(readFilter, loadBookmarks)
     <div class="rounded-2xl border border-[var(--line)] bg-gradient-to-r from-cyan-50 via-white to-amber-50 p-4 md:p-5">
       <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 class="text-2xl font-bold leading-tight md:text-3xl">All Bookmarks</h1>
+          <h1 class="text-2xl font-bold leading-tight md:text-3xl">{{ viewTitle }}</h1>
           <p class="text-sm text-[var(--ink-muted)]">Organize your links, reading queue, and notes in one place.</p>
         </div>
         <div class="flex flex-wrap gap-2">
@@ -102,6 +116,7 @@ watch(readFilter, loadBookmarks)
             <span v-if="isImporting" class="animate-spin text-white">⟳</span>
           <span>{{ isImporting ? 'Importing...' : 'Import HTML' }}</span>
         </button>
+          <SortDropdown v-model="sortOrder" />
           <button
             @click="setReadFilter(undefined)"
             :class="readFilter === undefined ? 'border-transparent bg-cyan-600 text-white shadow-sm shadow-cyan-600/30' : 'border-[var(--line)] bg-white text-[var(--ink-muted)] hover:bg-[var(--bg-soft)]'"

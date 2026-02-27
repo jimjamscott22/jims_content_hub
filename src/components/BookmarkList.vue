@@ -12,6 +12,10 @@ async function handleToggleRead(id) {
   await bookmarkStore.toggleRead(id)
 }
 
+async function handleToggleFavorite(id) {
+  await bookmarkStore.toggleFavorite(id)
+}
+
 async function handleDelete(id) {
   if (confirm('Delete this bookmark?')) {
     await bookmarkStore.deleteBookmark(id)
@@ -27,6 +31,7 @@ async function handleDelete(id) {
       :bookmark="bookmark"
       :index="idx"
       @toggle-read="handleToggleRead"
+      @toggle-favorite="handleToggleFavorite"
       @delete="handleDelete"
     />
   </TransitionGroup>

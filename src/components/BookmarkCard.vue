@@ -1,13 +1,14 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import CategoryBadge from './CategoryBadge.vue'
+import TagBadge from './TagBadge.vue'
 
 const props = defineProps({
   bookmark: { type: Object, required: true },
   index: { type: Number, default: 0 },
 })
 
-const emit = defineEmits(['toggle-read', 'delete'])
+const emit = defineEmits(['toggle-read', 'toggle-favorite', 'delete'])
 const cardRef = ref(null)
 const isVisible = ref(false)
 let observer
@@ -78,12 +79,21 @@ onBeforeUnmount(() => {
         </p>
           <div class="mt-2 flex flex-wrap items-center gap-2">
           <CategoryBadge v-if="bookmark.category_name" :name="bookmark.category_name" />
+            <TagBadge v-for="tag in bookmark.tags" :key="tag.id" :name="tag.name" />
             <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">{{ createdAt }}</span>
             <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">{{ host }}</span>
           </div>
         </div>
       </div>
       <div class="flex shrink-0 flex-wrap items-center gap-2 pl-0 sm:pl-3">
+        <button @click="emit('toggle-favorite', bookmark.id)"
+                class="cursor-pointer rounded-lg border px-2 py-1 text-sm font-semibold transition-colors"
+                :class="bookmark.is_favorite
+                  ? 'border-amber-200 bg-amber-50 text-amber-500'
+                  : 'border-slate-200 bg-slate-50 text-slate-400 hover:text-amber-400'"
+                :title="bookmark.is_favorite ? 'Remove from favorites' : 'Add to favorites'">
+          {{ bookmark.is_favorite ? '★' : '☆' }}
+        </button>
         <button @click="emit('toggle-read', bookmark.id)"
                 class="cursor-pointer rounded-lg border px-2 py-1 text-sm font-semibold transition-colors"
                 :class="bookmark.is_read

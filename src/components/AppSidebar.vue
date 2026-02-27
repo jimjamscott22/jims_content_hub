@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue'
 import { useCategoryStore } from '@/stores/categories'
 import { useBookmarkStore } from '@/stores/bookmarks'
+import { useTagStore } from '@/stores/tags'
 import { useRoute } from 'vue-router'
 
 const categoryStore = useCategoryStore()
 const bookmarkStore = useBookmarkStore()
+const tagStore = useTagStore()
 const newCategoryName = ref('')
 const route = useRoute()
 
@@ -20,6 +22,7 @@ const palette = [
 onMounted(() => {
   categoryStore.fetchCategories()
   bookmarkStore.fetchReadingStats()
+  tagStore.fetchTags()
 })
 
 async function addCategory() {
@@ -53,11 +56,25 @@ function readingQuery(state) {
               @click="navigate"
               type="button"
               class="w-full cursor-pointer rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
-              :class="isActive && !route.params.id
+              :class="isActive && !route.params.id && !route.query.favorites && !route.query.tag
                 ? 'border-cyan-200 bg-cyan-50 text-cyan-700 shadow-sm'
                 : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50/40'"
             >
               All Bookmarks
+            </button>
+          </router-link>
+        </li>
+        <li>
+          <router-link :to="{ name: 'home', query: { favorites: '1' } }" custom v-slot="{ navigate }">
+            <button
+              @click="navigate"
+              type="button"
+              class="w-full cursor-pointer rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
+              :class="route.query.favorites === '1'
+                ? 'border-amber-200 bg-amber-50 text-amber-700 shadow-sm'
+                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-amber-200 hover:bg-amber-50/40'"
+            >
+              ⭐ Favorites
             </button>
           </router-link>
         </li>
@@ -90,6 +107,27 @@ function readingQuery(state) {
           Add
         </button>
       </form>
+      </div>
+    </section>
+
+    <section v-if="tagStore.tags.length" class="panel overflow-hidden p-4">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ink-muted)]">Tags</h2>
+        <span class="rounded-full bg-[var(--bg-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ink-muted)]">{{ tagStore.tags.length }}</span>
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        <router-link
+          v-for="tag in tagStore.tags"
+          :key="tag.id"
+          :to="{ name: 'home', query: { tag: tag.id, tag_name: tag.name } }"
+          class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-all hover:-translate-y-0.5"
+          :class="route.query.tag == tag.id
+            ? 'border-violet-300 bg-violet-100 text-violet-800 shadow-sm'
+            : 'border-violet-100 bg-violet-50 text-violet-700 hover:border-violet-200 hover:bg-violet-100'"
+        >
+          <span>#{{ tag.name }}</span>
+          <span class="rounded-full bg-violet-200/60 px-1.5 text-[10px] font-bold text-violet-600">{{ tag.bookmark_count ?? 0 }}</span>
+        </router-link>
       </div>
     </section>
 

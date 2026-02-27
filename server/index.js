@@ -12,6 +12,7 @@ app.use(express.json())
 
 app.use('/api/bookmarks', bookmarkRoutes)
 app.use('/api/categories', categoryRoutes)
+app.use('/api/tags', tagRoutes)
 app.use('/api/metadata', metadataRoutes)
 
 app.get('/api/health', (req, res) => {

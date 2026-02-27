@@ -41,6 +41,8 @@ npm run build
 
 - **Import browser bookmarks** — ✅ Implemented (Parses exported HTML bookmarks file)
 - **Auto-fetch URL metadata** — ✅ Implemented (Automatically pulls page title/description and attempts to categorize)
-- **Tags** — Add a tagging system (many-to-many) alongside categories for more flexible organization
+- **Tags** — ✅ Implemented (Many-to-many tagging system with inline creation, sidebar filtering, and tag badges on cards)
+- **Favorites** — ✅ Implemented (Star/favorite bookmarks to pin them to the top of any list)
+- **Sort options** — ✅ Implemented (Sort by newest, oldest, A→Z, Z→A with favorites always first)
 - **Supabase migration** — Move from local SQLite to Supabase for cloud-hosted Postgres, auth, and real-time sync
 - **Deploy to DigitalOcean** — Deploy the app to a DigitalOcean droplet for access from anywhere

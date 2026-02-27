@@ -17,6 +17,9 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
       if (filters.search) params.set('search', filters.search)
       if (filters.category_id) params.set('category_id', filters.category_id)
       if (filters.is_read !== undefined) params.set('is_read', filters.is_read)
+      if (filters.is_favorite !== undefined) params.set('is_favorite', filters.is_favorite)
+      if (filters.tag_id) params.set('tag_id', filters.tag_id)
+      if (filters.sort) params.set('sort', filters.sort)
 
       const queryString = params.toString()
       const url = '/api/bookmarks' + (queryString ? `?${queryString}` : '')
@@ -98,6 +101,14 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
     return updated
   }
 
+  async function toggleFavorite(id) {
+    const res = await fetch(`/api/bookmarks/${id}/toggle-favorite`, { method: 'PATCH' })
+    const updated = await res.json()
+    const idx = bookmarks.value.findIndex(b => b.id === id)
+    if (idx !== -1) bookmarks.value[idx] = updated
+    return updated
+  }
+
   async function deleteBookmark(id) {
     await fetch(`/api/bookmarks/${id}`, { method: 'DELETE' })
     bookmarks.value = bookmarks.value.filter(b => b.id !== id)
@@ -127,7 +138,7 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
   return {
     bookmarks, currentBookmark, readingStats, isReadingStatsLoading, isLoading, error,
     fetchBookmarks, fetchBookmark, createBookmark,
-    updateBookmark, toggleRead, deleteBookmark,
+    updateBookmark, toggleRead, toggleFavorite, deleteBookmark,
     importBookmarks, fetchReadingStats,
   }
 })
