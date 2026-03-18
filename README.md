@@ -25,13 +25,25 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+## MySQL Setup
+
+The API server reads MySQL connection values from `.env` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`).
+
+1. Ensure your MySQL server is running.
+2. Create the database and grant privileges for the configured user.
+3. Start the app. The API creates required tables automatically on startup.
+
+## Development
 
 ```sh
 npm run dev
 ```
 
-### Compile and Minify for Production
+This starts:
+- Vite client dev server
+- Express API server (using `API_HOST` and `API_PORT` from `.env`)
+
+## Compile and Minify for Production
 
 ```sh
 npm run build
@@ -44,5 +56,4 @@ npm run build
 - **Tags** — ✅ Implemented (Many-to-many tagging system with inline creation, sidebar filtering, and tag badges on cards)
 - **Favorites** — ✅ Implemented (Star/favorite bookmarks to pin them to the top of any list)
 - **Sort options** — ✅ Implemented (Sort by newest, oldest, A→Z, Z→A with favorites always first)
-- **Supabase migration** — Move from local SQLite to Supabase for cloud-hosted Postgres, auth, and real-time sync
 - **Deploy to DigitalOcean** — Deploy the app to a DigitalOcean droplet for access from anywhere
