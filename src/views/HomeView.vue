@@ -11,7 +11,9 @@ const bookmarkStore = useBookmarkStore()
 const readFilter = ref(parseReadFilter(route.query.read))
 const sortOrder = ref(route.query.sort || 'newest')
 const fileInput = ref(null)
+const fileInputEnriched = ref(null)
 const isImporting = ref(false)
+const enrichProgress = ref(null) // { current, total, url } or null when idle
 
 const stats = computed(() => {
   const total = bookmarkStore.bookmarks.length
@@ -84,6 +86,31 @@ async function handleImport(event) {
   }
 }
 
+async function handleEnrichedImport(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  if (!confirm(`Import bookmarks from "${file.name}" and auto-fetch metadata for each one?\n\nThis may take a moment for large files.`)) {
+    fileInputEnriched.value.value = ''
+    return
+  }
+
+  enrichProgress.value = { current: 0, total: 0, url: '' }
+
+  try {
+    const result = await bookmarkStore.importBookmarksEnriched(file, (progress) => {
+      enrichProgress.value = progress
+    })
+    enrichProgress.value = null
+    alert(`Successfully imported ${result.count} bookmarks with metadata.`)
+  } catch (error) {
+    enrichProgress.value = null
+    alert(`Import failed: ${error.message}`)
+  } finally {
+    if (fileInputEnriched.value) fileInputEnriched.value.value = ''
+  }
+}
+
 onMounted(loadBookmarks)
 watch(() => route.query.search, loadBookmarks)
 watch(() => route.query.favorites, loadBookmarks)
@@ -107,15 +134,24 @@ watch(sortOrder, loadBookmarks)
           <p class="text-sm text-[var(--ink-muted)]">Organize your links, reading queue, and notes in one place.</p>
         </div>
         <div class="flex flex-wrap gap-2">
-        <input type="file" ref="fileInput" accept=".html" @change="handleImport" class="hidden" />
+          <input type="file" ref="fileInput" accept=".html" @change="handleImport" class="hidden" />
+          <input type="file" ref="fileInputEnriched" accept=".html" @change="handleEnrichedImport" class="hidden" />
           <button
             @click="fileInput.click()"
             class="flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-700/30 transition-all hover:-translate-y-0.5 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-60"
-            :disabled="isImporting"
+            :disabled="isImporting || !!enrichProgress"
           >
-            <span v-if="isImporting" class="animate-spin text-white">⟳</span>
-          <span>{{ isImporting ? 'Importing...' : 'Import HTML' }}</span>
-        </button>
+            <span v-if="isImporting" class="animate-spin">⟳</span>
+            <span>{{ isImporting ? 'Importing...' : 'Import HTML' }}</span>
+          </button>
+          <button
+            @click="fileInputEnriched.click()"
+            class="flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-violet-700 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-violet-700/30 transition-all hover:-translate-y-0.5 hover:from-violet-500 hover:to-violet-600 disabled:opacity-60"
+            :disabled="isImporting || !!enrichProgress"
+            title="Import and auto-fetch title, description & category for every bookmark"
+          >
+            <span>Import + Autofill</span>
+          </button>
           <SortDropdown v-model="sortOrder" />
           <button
             @click="setReadFilter(undefined)"
@@ -164,4 +200,52 @@ watch(sortOrder, loadBookmarks)
     </p>
     <BookmarkList v-else :bookmarks="bookmarkStore.bookmarks" />
   </div>
+
+  <!-- Enriched import progress modal -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div
+        v-if="enrichProgress"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      >
+        <div class="w-full max-w-md rounded-2xl border border-[var(--line)] bg-white p-6 shadow-2xl">
+          <h2 class="mb-1 text-lg font-bold text-[var(--ink)]">Importing with Autofill</h2>
+          <p class="mb-4 text-sm text-[var(--ink-muted)]">
+            Fetching metadata for each bookmark. Please wait&hellip;
+          </p>
+
+          <div class="mb-2 flex items-center justify-between text-sm font-medium text-[var(--ink-muted)]">
+            <span>Progress</span>
+            <span>{{ enrichProgress.current }} / {{ enrichProgress.total }}</span>
+          </div>
+
+          <div class="h-2.5 w-full overflow-hidden rounded-full bg-violet-100">
+            <div
+              class="h-full rounded-full bg-gradient-to-r from-violet-500 to-violet-600 transition-all duration-300"
+              :style="{ width: enrichProgress.total ? `${(enrichProgress.current / enrichProgress.total) * 100}%` : '0%' }"
+            />
+          </div>
+
+          <p
+            v-if="enrichProgress.url"
+            class="mt-3 truncate text-xs text-[var(--ink-muted)]"
+            :title="enrichProgress.url"
+          >
+            {{ enrichProgress.url }}
+          </p>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

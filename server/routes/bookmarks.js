@@ -68,6 +68,111 @@ function handleServerError(res, error, message) {
   res.status(500).json({ error: message })
 }
 
+// POST /api/bookmarks/import-enriched  (SSE streaming, fetches metadata for each URL)
+router.post('/import-enriched', upload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' })
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+  res.flushHeaders()
+
+  const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`)
+
+  try {
+    const html = req.file.buffer.toString('utf-8')
+    const $ = load(html)
+    const parsed = []
+
+    $('a').each((_, element) => {
+      const el = $(element)
+      const url = el.attr('href')
+      const title = el.text().trim() || url
+      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+        parsed.push({ url, title })
+      }
+    })
+
+    if (parsed.length === 0) {
+      send({ type: 'error', message: 'No valid bookmarks found in file' })
+      return res.end()
+    }
+
+    send({ type: 'start', total: parsed.length })
+
+    const categories = await db.query('SELECT id, name FROM categories')
+
+    const CONCURRENCY = 5
+    const TIMEOUT_MS = 8000
+    const enriched = new Array(parsed.length)
+
+    const fetchOne = async (item, index) => {
+      let title = item.title
+      let description = ''
+      let category_id = null
+
+      try {
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+
+        const response = await fetch(item.url, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          },
+        })
+        clearTimeout(timer)
+
+        if (response.ok) {
+          const pageHtml = await response.text()
+          const $p = load(pageHtml)
+          title =
+            $p('title').first().text().trim() ||
+            $p('meta[property="og:title"]').attr('content') ||
+            item.title
+          description =
+            $p('meta[name="description"]').attr('content') ||
+            $p('meta[property="og:description"]').attr('content') ||
+            ''
+        }
+      } catch {
+        // timeout or fetch error — keep original title, empty description
+      }
+
+      const text = (title + ' ' + description).toLowerCase()
+      const match = categories.find((c) => text.includes(c.name.toLowerCase()))
+      if (match) category_id = match.id
+
+      enriched[index] = { url: item.url, title, description, category_id }
+      send({ type: 'progress', current: index + 1, total: parsed.length, url: item.url })
+    }
+
+    for (let i = 0; i < parsed.length; i += CONCURRENCY) {
+      const batch = parsed.slice(i, i + CONCURRENCY)
+      await Promise.all(batch.map((item, j) => fetchOne(item, i + j)))
+    }
+
+    await db.withTransaction(async (tx) => {
+      for (const bookmark of enriched) {
+        await tx.execute(
+          'INSERT INTO bookmarks (url, title, description, category_id, is_read) VALUES (?, ?, ?, ?, 0)',
+          [bookmark.url, bookmark.title, bookmark.description, bookmark.category_id],
+        )
+      }
+    })
+
+    send({ type: 'done', count: enriched.length })
+  } catch (error) {
+    console.error('Enriched import failed:', error)
+    send({ type: 'error', message: 'Import failed: ' + error.message })
+  } finally {
+    res.end()
+  }
+})
+
 // POST /api/bookmarks/import
 router.post('/import', upload.single('file'), async (req, res) => {
   if (!req.file) {
