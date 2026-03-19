@@ -1,13 +1,25 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
+import { useThemeStore } from '@/stores/theme'
 
 const router = useRouter()
 const route = useRoute()
 const searchQuery = ref(route.query.search || '')
+const themeStore = useThemeStore()
+const { effectiveTheme } = storeToRefs(themeStore)
+const isDarkMode = computed(() => effectiveTheme.value === 'dark')
+const themeButtonLabel = computed(() =>
+  isDarkMode.value ? 'Switch to light mode' : 'Switch to dark mode',
+)
 
 function handleSearch() {
   router.push({ name: 'home', query: searchQuery.value ? { search: searchQuery.value } : {} })
+}
+
+function handleThemeToggle() {
+  themeStore.toggleTheme()
 }
 
 watch(
@@ -41,6 +53,16 @@ watch(
           />
         </div>
       </form>
+      <button
+        type="button"
+        @click="handleThemeToggle"
+        :aria-label="themeButtonLabel"
+        :title="themeButtonLabel"
+        class="inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm font-semibold text-[var(--ink-strong)] shadow-sm transition-colors hover:bg-[var(--bg-soft)]"
+      >
+        <span aria-hidden="true">{{ isDarkMode ? '☀' : '🌙' }}</span>
+        <span class="hidden md:inline">{{ isDarkMode ? 'Light' : 'Dark' }}</span>
+      </button>
       <router-link
         to="/add"
         class="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-cyan-700/35 transition-all hover:-translate-y-0.5 hover:from-cyan-500 hover:to-teal-600 whitespace-nowrap"

@@ -58,7 +58,7 @@ function readingQuery(state) {
               class="w-full cursor-pointer rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
               :class="isActive && !route.params.id && !route.query.favorites && !route.query.tag
                 ? 'border-cyan-200 bg-cyan-50 text-cyan-700 shadow-sm'
-                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50/40'"
+                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]'"
             >
               All Bookmarks
             </button>
@@ -72,7 +72,7 @@ function readingQuery(state) {
               class="w-full cursor-pointer rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
               :class="route.query.favorites === '1'
                 ? 'border-amber-200 bg-amber-50 text-amber-700 shadow-sm'
-                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-amber-200 hover:bg-amber-50/40'"
+                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]'"
             >
               ⭐ Favorites
             </button>
@@ -86,7 +86,7 @@ function readingQuery(state) {
               class="w-full cursor-pointer rounded-xl border px-3 py-2 text-left text-sm font-medium transition-all"
               :class="isActive
                 ? 'border-transparent bg-gradient-to-r ' + palette[idx % palette.length] + ' shadow-sm'
-                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50/40'"
+                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]'"
             >
               {{ cat.name }}
             </button>
@@ -152,7 +152,7 @@ function readingQuery(state) {
               class="flex w-full cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
               :class="route.name === 'home' && route.query.read === 'unread'
                 ? 'border-cyan-200 bg-cyan-50 text-cyan-700 shadow-sm'
-                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50/40'"
+                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]'"
             >
               <span>To Read</span>
               <span
@@ -161,7 +161,7 @@ function readingQuery(state) {
               ></span>
               <span
                 v-else
-                class="rounded-full bg-white/85 px-2 py-0.5 text-xs font-semibold text-[var(--ink-muted)]"
+                class="rounded-full bg-[var(--bg-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ink-muted)]"
               >{{ bookmarkStore.readingStats.unread }}</span>
             </button>
           </router-link>
@@ -174,7 +174,7 @@ function readingQuery(state) {
               class="flex w-full cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
               :class="route.name === 'home' && !route.query.read
                 ? 'border-cyan-200 bg-cyan-50 text-cyan-700 shadow-sm'
-                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50/40'"
+                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]'"
             >
               <span>All Reading</span>
               <span
@@ -183,7 +183,7 @@ function readingQuery(state) {
               ></span>
               <span
                 v-else
-                class="rounded-full bg-white/85 px-2 py-0.5 text-xs font-semibold text-[var(--ink-muted)]"
+                class="rounded-full bg-[var(--bg-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ink-muted)]"
               >{{ bookmarkStore.readingStats.total }}</span>
             </button>
           </router-link>
@@ -196,7 +196,7 @@ function readingQuery(state) {
               class="flex w-full cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
               :class="route.name === 'home' && route.query.read === 'read'
                 ? 'border-cyan-200 bg-cyan-50 text-cyan-700 shadow-sm'
-                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-cyan-200 hover:bg-cyan-50/40'"
+                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]'"
             >
               <span>Finished</span>
               <span
@@ -205,7 +205,7 @@ function readingQuery(state) {
               ></span>
               <span
                 v-else
-                class="rounded-full bg-white/85 px-2 py-0.5 text-xs font-semibold text-[var(--ink-muted)]"
+                class="rounded-full bg-[var(--bg-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ink-muted)]"
               >{{ bookmarkStore.readingStats.read }}</span>
             </button>
           </router-link>

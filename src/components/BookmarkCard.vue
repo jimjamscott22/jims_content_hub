@@ -66,22 +66,22 @@ onBeforeUnmount(() => {
       <div class="flex min-w-0 flex-1 gap-3">
         <div class="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/80 shadow-sm">
           <div class="absolute inset-0" :style="previewStyle"></div>
-          <span class="absolute inset-0 grid place-items-center text-sm font-bold tracking-wide text-slate-700">{{ previewLabel }}</span>
+          <span class="absolute inset-0 grid place-items-center text-sm font-bold tracking-wide text-[var(--ink-strong)]">{{ previewLabel }}</span>
         </div>
         <div class="min-w-0">
         <a :href="bookmark.url" target="_blank" rel="noopener"
-             class="block truncate text-lg font-semibold text-cyan-700 hover:text-cyan-800 hover:underline">
+             class="block truncate text-lg font-semibold text-[var(--primary-strong)] hover:text-[var(--primary)] hover:underline">
           {{ bookmark.title }}
         </a>
           <p class="truncate text-sm text-[var(--ink-muted)]">{{ host }}</p>
-        <p v-if="bookmark.description" class="mt-1 line-clamp-2 text-sm text-slate-700">
+        <p v-if="bookmark.description" class="mt-1 line-clamp-2 text-sm text-[var(--ink-muted)]">
           {{ bookmark.description }}
         </p>
           <div class="mt-2 flex flex-wrap items-center gap-2">
           <CategoryBadge v-if="bookmark.category_name" :name="bookmark.category_name" />
             <TagBadge v-for="tag in bookmark.tags" :key="tag.id" :name="tag.name" />
-            <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">{{ createdAt }}</span>
-            <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">{{ host }}</span>
+            <span class="rounded-full bg-[var(--bg-soft)] px-2 py-0.5 text-xs font-medium text-[var(--ink-muted)]">{{ createdAt }}</span>
+            <span class="rounded-full bg-[var(--bg-soft)] px-2 py-0.5 text-xs font-medium text-[var(--ink-muted)]">{{ host }}</span>
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@ onBeforeUnmount(() => {
                 class="cursor-pointer rounded-lg border px-2 py-1 text-sm font-semibold transition-colors"
                 :class="bookmark.is_favorite
                   ? 'border-amber-200 bg-amber-50 text-amber-500'
-                  : 'border-slate-200 bg-slate-50 text-slate-400 hover:text-amber-400'"
+                  : 'border-[var(--line)] bg-[var(--bg-soft)] text-[var(--ink-muted)] hover:text-amber-400'"
                 :title="bookmark.is_favorite ? 'Remove from favorites' : 'Add to favorites'">
           {{ bookmark.is_favorite ? '★' : '☆' }}
         </button>

@@ -127,7 +127,7 @@ watch(sortOrder, loadBookmarks)
 
 <template>
   <div class="space-y-5">
-    <div class="rounded-2xl border border-[var(--line)] bg-gradient-to-r from-cyan-50 via-white to-amber-50 p-4 md:p-5">
+    <div class="hero-panel rounded-2xl border border-[var(--line)] p-4 md:p-5">
       <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 class="text-2xl font-bold leading-tight md:text-3xl">{{ viewTitle }}</h1>
@@ -177,21 +177,21 @@ watch(sortOrder, loadBookmarks)
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <div class="rounded-xl border border-cyan-100 bg-cyan-50/80 px-3 py-2">
-          <p class="text-xs uppercase tracking-wide text-cyan-700">Total</p>
-          <p class="text-xl font-bold text-cyan-900">{{ stats.total }}</p>
+        <div class="stat-card stat-card--cyan rounded-xl border px-3 py-2">
+          <p class="text-xs uppercase tracking-wide">Total</p>
+          <p class="text-xl font-bold">{{ stats.total }}</p>
         </div>
-        <div class="rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-2">
-          <p class="text-xs uppercase tracking-wide text-amber-700">Unread</p>
-          <p class="text-xl font-bold text-amber-900">{{ stats.unread }}</p>
+        <div class="stat-card stat-card--amber rounded-xl border px-3 py-2">
+          <p class="text-xs uppercase tracking-wide">Unread</p>
+          <p class="text-xl font-bold">{{ stats.unread }}</p>
         </div>
-        <div class="rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2">
-          <p class="text-xs uppercase tracking-wide text-emerald-700">Read</p>
-          <p class="text-xl font-bold text-emerald-900">{{ stats.read }}</p>
+        <div class="stat-card stat-card--emerald rounded-xl border px-3 py-2">
+          <p class="text-xs uppercase tracking-wide">Read</p>
+          <p class="text-xl font-bold">{{ stats.read }}</p>
         </div>
-        <div class="rounded-xl border border-sky-100 bg-sky-50/80 px-3 py-2">
-          <p class="text-xs uppercase tracking-wide text-sky-700">Categories</p>
-          <p class="text-xl font-bold text-sky-900">{{ stats.categories }}</p>
+        <div class="stat-card stat-card--sky rounded-xl border px-3 py-2">
+          <p class="text-xs uppercase tracking-wide">Categories</p>
+          <p class="text-xl font-bold">{{ stats.categories }}</p>
         </div>
       </div>
     </div>
@@ -209,7 +209,7 @@ watch(sortOrder, loadBookmarks)
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       >
         <div class="w-full max-w-md rounded-2xl border border-[var(--line)] bg-white p-6 shadow-2xl">
-          <h2 class="mb-1 text-lg font-bold text-[var(--ink)]">Importing with Autofill</h2>
+          <h2 class="mb-1 text-lg font-bold text-[var(--ink-strong)]">Importing with Autofill</h2>
           <p class="mb-4 text-sm text-[var(--ink-muted)]">
             Fetching metadata for each bookmark. Please wait&hellip;
           </p>
@@ -219,7 +219,7 @@ watch(sortOrder, loadBookmarks)
             <span>{{ enrichProgress.current }} / {{ enrichProgress.total }}</span>
           </div>
 
-          <div class="h-2.5 w-full overflow-hidden rounded-full bg-violet-100">
+          <div class="h-2.5 w-full overflow-hidden rounded-full bg-[var(--bg-soft)]">
             <div
               class="h-full rounded-full bg-gradient-to-r from-violet-500 to-violet-600 transition-all duration-300"
               :style="{ width: enrichProgress.total ? `${(enrichProgress.current / enrichProgress.total) * 100}%` : '0%' }"
