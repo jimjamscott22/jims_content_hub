@@ -1,6 +1,13 @@
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
+
+const route = useRoute()
+const shellMaxClass = computed(() =>
+  route.meta.layoutWide ? 'max-w-[min(1760px,100%)]' : 'max-w-7xl',
+)
 </script>
 
 <template>
@@ -10,7 +17,7 @@ import AppSidebar from '@/components/AppSidebar.vue'
       <div class="absolute top-20 right-0 h-64 w-64 rounded-full bg-amber-200/40 blur-3xl"></div>
     </div>
     <AppHeader />
-    <div class="max-w-7xl mx-auto px-4 pb-8">
+    <div class="mx-auto px-4 pb-8" :class="shellMaxClass">
       <div class="flex flex-col gap-4 pt-4 md:flex-row md:items-start">
         <AppSidebar class="w-full shrink-0 md:sticky md:top-24 md:w-72" />
         <main class="min-w-0 flex-1 panel p-4 md:p-6">

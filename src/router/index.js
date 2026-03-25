@@ -24,6 +24,12 @@ const routes = [
     component: () => import('@/views/CategoryView.vue'),
     props: true,
   },
+  {
+    path: '/board',
+    name: 'board',
+    meta: { layoutWide: true },
+    component: () => import('@/views/BoardView.vue'),
+  },
 ]
 
 const router = createRouter({

@@ -56,11 +56,25 @@ function readingQuery(state) {
               @click="navigate"
               type="button"
               class="w-full cursor-pointer rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
-              :class="isActive && !route.params.id && !route.query.favorites && !route.query.tag
+              :class="isActive && !route.params.id && !route.query.favorites && !route.query.tag && route.name !== 'board'
                 ? 'border-cyan-200 bg-cyan-50 text-cyan-700 shadow-sm'
                 : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]'"
             >
               All Bookmarks
+            </button>
+          </router-link>
+        </li>
+        <li>
+          <router-link :to="{ name: 'board' }" custom v-slot="{ navigate, isActive }">
+            <button
+              @click="navigate"
+              type="button"
+              class="w-full cursor-pointer rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all"
+              :class="isActive
+                ? 'border-teal-200 bg-teal-50 text-teal-800 shadow-sm'
+                : 'border-[var(--line)] bg-white text-[var(--ink-strong)] hover:-translate-y-0.5 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]'"
+            >
+              Board view
             </button>
           </router-link>
         </li>
