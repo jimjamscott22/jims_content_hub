@@ -2,6 +2,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import { load } from 'cheerio'
 import db from '../db.js'
+import { fetchSiteMetadata } from '../utils/siteMetadata.js'
 
 const router = Router()
 const upload = multer({ storage: multer.memoryStorage() })
@@ -68,6 +69,14 @@ function handleServerError(res, error, message) {
   res.status(500).json({ error: message })
 }
 
+async function fetchMissingSiteMetadata(url) {
+  try {
+    return await fetchSiteMetadata(url)
+  } catch {
+    return { title: '', description: '', icon_url: null }
+  }
+}
+
 // POST /api/bookmarks/import-enriched  (SSE streaming, fetches metadata for each URL)
 router.post('/import-enriched', upload.single('file'), async (req, res) => {
   if (!req.file) {
@@ -111,33 +120,14 @@ router.post('/import-enriched', upload.single('file'), async (req, res) => {
     const fetchOne = async (item, index) => {
       let title = item.title
       let description = ''
+      let icon_url = null
       let category_id = null
 
       try {
-        const controller = new AbortController()
-        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-
-        const response = await fetch(item.url, {
-          signal: controller.signal,
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          },
-        })
-        clearTimeout(timer)
-
-        if (response.ok) {
-          const pageHtml = await response.text()
-          const $p = load(pageHtml)
-          title =
-            $p('title').first().text().trim() ||
-            $p('meta[property="og:title"]').attr('content') ||
-            item.title
-          description =
-            $p('meta[name="description"]').attr('content') ||
-            $p('meta[property="og:description"]').attr('content') ||
-            ''
-        }
+        const metadata = await fetchSiteMetadata(item.url, TIMEOUT_MS)
+        title = metadata.title || item.title
+        description = metadata.description || ''
+        icon_url = metadata.icon_url || null
       } catch {
         // timeout or fetch error — keep original title, empty description
       }
@@ -146,7 +136,7 @@ router.post('/import-enriched', upload.single('file'), async (req, res) => {
       const match = categories.find((c) => text.includes(c.name.toLowerCase()))
       if (match) category_id = match.id
 
-      enriched[index] = { url: item.url, title, description, category_id }
+      enriched[index] = { url: item.url, title, description, icon_url, category_id }
       send({ type: 'progress', current: index + 1, total: parsed.length, url: item.url })
     }
 
@@ -158,8 +148,8 @@ router.post('/import-enriched', upload.single('file'), async (req, res) => {
     await db.withTransaction(async (tx) => {
       for (const bookmark of enriched) {
         await tx.execute(
-          'INSERT INTO bookmarks (url, title, description, category_id, is_read) VALUES (?, ?, ?, ?, 0)',
-          [bookmark.url, bookmark.title, bookmark.description, bookmark.category_id],
+          'INSERT INTO bookmarks (url, title, description, icon_url, category_id, is_read) VALUES (?, ?, ?, ?, ?, 0)',
+          [bookmark.url, bookmark.title, bookmark.description, bookmark.icon_url, bookmark.category_id],
         )
       }
     })
@@ -202,8 +192,8 @@ router.post('/import', upload.single('file'), async (req, res) => {
       for (const bookmark of bookmarksToInsert) {
         await tx.execute(
           `
-            INSERT INTO bookmarks (url, title, description, is_read)
-            VALUES (?, ?, 'Imported from browser', 0)
+            INSERT INTO bookmarks (url, title, description, icon_url, is_read)
+            VALUES (?, ?, 'Imported from browser', NULL, 0)
           `,
           [bookmark.url, bookmark.title],
         )
@@ -314,23 +304,25 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/bookmarks
 router.post('/', async (req, res) => {
-  const { url, title, description, category_id, is_read, is_favorite, tag_ids } = req.body
+  const { url, title, description, icon_url, category_id, is_read, is_favorite, tag_ids } = req.body
 
   if (!url || !title) {
     return res.status(400).json({ error: 'URL and title are required' })
   }
 
   try {
+    const metadata = icon_url ? null : await fetchMissingSiteMetadata(url)
     const bookmarkId = await db.withTransaction(async (tx) => {
       const result = await tx.execute(
         `
-          INSERT INTO bookmarks (url, title, description, category_id, is_read, is_favorite)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO bookmarks (url, title, description, icon_url, category_id, is_read, is_favorite)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
         [
           url,
-          title,
-          description || '',
+          title || metadata?.title || url,
+          description || metadata?.description || '',
+          icon_url || metadata?.icon_url || null,
           category_id || null,
           is_read ? 1 : 0,
           is_favorite ? 1 : 0,
@@ -363,7 +355,7 @@ router.post('/', async (req, res) => {
 
 // PUT /api/bookmarks/:id
 router.put('/:id', async (req, res) => {
-  const { url, title, description, category_id, is_read, is_favorite, tag_ids } = req.body
+  const { url, title, description, icon_url, category_id, is_read, is_favorite, tag_ids } = req.body
 
   try {
     const existing = await db.queryOne('SELECT * FROM bookmarks WHERE id = ?', [req.params.id])
@@ -371,17 +363,27 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Bookmark not found' })
     }
 
+    const nextUrl = url ?? existing.url
+    const urlChanged = nextUrl !== existing.url
+    const shouldRefreshIcon = urlChanged || icon_url === undefined
+    const metadata = shouldRefreshIcon ? await fetchMissingSiteMetadata(nextUrl) : null
+
     await db.withTransaction(async (tx) => {
       await tx.execute(
         `
           UPDATE bookmarks
-          SET url = ?, title = ?, description = ?, category_id = ?, is_read = ?, is_favorite = ?, updated_at = CURRENT_TIMESTAMP
+          SET url = ?, title = ?, description = ?, icon_url = ?, category_id = ?, is_read = ?, is_favorite = ?, updated_at = CURRENT_TIMESTAMP
           WHERE id = ?
         `,
         [
-          url ?? existing.url,
+          nextUrl,
           title ?? existing.title,
           description ?? existing.description,
+          icon_url !== undefined
+            ? icon_url
+            : urlChanged
+              ? metadata?.icon_url || null
+              : existing.icon_url || metadata?.icon_url || null,
           category_id !== undefined ? (category_id || null) : existing.category_id,
           is_read !== undefined ? (is_read ? 1 : 0) : existing.is_read,
           is_favorite !== undefined ? (is_favorite ? 1 : 0) : existing.is_favorite,

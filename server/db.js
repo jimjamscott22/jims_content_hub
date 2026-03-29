@@ -80,6 +80,7 @@ async function initializeDatabase() {
       url TEXT NOT NULL,
       title VARCHAR(512) NOT NULL,
       description TEXT,
+      icon_url TEXT,
       category_id INT NULL,
       is_read TINYINT(1) NOT NULL DEFAULT 0,
       is_favorite TINYINT(1) NOT NULL DEFAULT 0,
@@ -90,6 +91,19 @@ async function initializeDatabase() {
         ON DELETE SET NULL
     ) ENGINE=InnoDB
   `)
+
+  const iconColumn = await queryOne(
+    `
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bookmarks' AND COLUMN_NAME = 'icon_url'
+    `,
+    [DB_NAME],
+  )
+
+  if (!iconColumn) {
+    await query('ALTER TABLE bookmarks ADD COLUMN icon_url TEXT NULL AFTER description')
+  }
 
   await query(`
     CREATE TABLE IF NOT EXISTS tags (

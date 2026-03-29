@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import CategoryBadge from './CategoryBadge.vue'
 import TagBadge from './TagBadge.vue'
 
@@ -11,6 +11,7 @@ const props = defineProps({
 const emit = defineEmits(['toggle-read', 'toggle-favorite', 'delete'])
 const cardRef = ref(null)
 const isVisible = ref(false)
+const hasIconError = ref(false)
 let observer
 
 const host = computed(() => {
@@ -33,6 +34,14 @@ function cardGradient(seed) {
 }
 
 const previewStyle = computed(() => ({ background: cardGradient(props.bookmark.url || props.bookmark.title || 'bookmark') }))
+const iconUrl = computed(() => (hasIconError.value ? '' : props.bookmark.icon_url || ''))
+
+watch(
+  () => props.bookmark.icon_url,
+  () => {
+    hasIconError.value = false
+  },
+)
 
 onMounted(() => {
   observer = new IntersectionObserver(
@@ -66,7 +75,15 @@ onBeforeUnmount(() => {
       <div class="flex min-w-0 flex-1 gap-3">
         <div class="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/80 shadow-sm">
           <div class="absolute inset-0" :style="previewStyle"></div>
-          <span class="absolute inset-0 grid place-items-center text-sm font-bold tracking-wide text-[var(--ink-strong)]">{{ previewLabel }}</span>
+          <img
+            v-if="iconUrl"
+            :src="iconUrl"
+            :alt="`${host} icon`"
+            class="absolute inset-0 h-full w-full bg-white object-contain p-2"
+            loading="lazy"
+            @error="hasIconError = true"
+          />
+          <span v-else class="absolute inset-0 grid place-items-center text-sm font-bold tracking-wide text-[var(--ink-strong)]">{{ previewLabel }}</span>
         </div>
         <div class="min-w-0">
         <a :href="bookmark.url" target="_blank" rel="noopener"

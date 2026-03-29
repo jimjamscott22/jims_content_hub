@@ -15,6 +15,7 @@ const form = ref({
   url: props.initialData?.url || '',
   title: props.initialData?.title || '',
   description: props.initialData?.description || '',
+  icon_url: props.initialData?.icon_url || '',
   category_id: props.initialData?.category_id || '',
   is_read: props.initialData?.is_read ? true : false,
   is_favorite: props.initialData?.is_favorite ? true : false,
@@ -39,6 +40,7 @@ async function fetchMetadata() {
     
     if (data.title) form.value.title = data.title
     if (data.description) form.value.description = data.description
+    form.value.icon_url = data.icon_url || ''
 
     // Auto-organize attempt
     if (!form.value.category_id) {
@@ -58,6 +60,7 @@ async function fetchMetadata() {
 function handleSubmit() {
   emit('submit', {
     ...form.value,
+    icon_url: form.value.icon_url || null,
     category_id: form.value.category_id || null,
   })
 }

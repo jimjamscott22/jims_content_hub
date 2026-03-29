@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { load } from 'cheerio'
+import { fetchSiteMetadata } from '../utils/siteMetadata.js'
 
 const router = Router()
 
@@ -11,35 +11,15 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // Add protocol if missing
-    const targetUrl = url.startsWith('http') ? url : `https://${url}`
-    
-    const response = await fetch(targetUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+    const metadata = await fetchSiteMetadata(url)
+    res.json({
+      title: metadata.title,
+      description: metadata.description,
+      icon_url: metadata.icon_url,
     })
-    
-    if (!response.ok) {
-      return res.status(response.status).json({ error: 'Failed to fetch URL' })
-    }
-
-    const html = await response.text()
-    const $ = load(html)
-
-    const title = $('title').first().text().trim() || 
-                  $('meta[property="og:title"]').attr('content') || 
-                  ''
-    
-    const description = $('meta[name="description"]').attr('content') || 
-                        $('meta[property="og:description"]').attr('content') || 
-                        ''
-
-    res.json({ title, description })
-
   } catch (error) {
     console.error('Metadata fetch error:', error)
-    res.status(500).json({ error: 'Failed to fetch metadata' })
+    res.status(error.status || 500).json({ error: 'Failed to fetch metadata' })
   }
 })
 
