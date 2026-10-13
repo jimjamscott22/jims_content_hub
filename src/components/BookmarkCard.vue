@@ -2,11 +2,14 @@
 import { computed, ref, watch } from 'vue'
 import CategoryBadge from './CategoryBadge.vue'
 import TagBadge from './TagBadge.vue'
+import BookmarkActions from './BookmarkActions.vue'
 import { categoryColor } from '@/utils/categoryColor'
 import { safeUrl } from '@/utils/safeUrl'
 
 const props = defineProps({
   bookmark: { type: Object, required: true },
+  layout: { type: String, default: 'list' },
+  disabled: Boolean,
 })
 
 const emit = defineEmits(['toggle-read', 'toggle-favorite', 'delete'])
@@ -41,7 +44,7 @@ watch(
 <template>
   <article
     class="bookmark-row"
-    :class="{ 'is-read': bookmark.is_read }"
+    :class="{ 'is-read': bookmark.is_read, 'bookmark-grid-card': layout === 'grid' }"
     :style="{ '--cat': categoryColor(bookmark.category_id) }"
   >
     <div class="bookmark-row__icon">
@@ -57,7 +60,7 @@ watch(
     </div>
 
     <div class="min-w-0">
-      <a :href="safeUrl(bookmark.url)" target="_blank" rel="noopener" class="bookmark-row__title">
+      <a :href="safeUrl(bookmark.url)" target="_blank" rel="noopener" class="bookmark-row__title" :title="bookmark.title">
         <span v-if="!bookmark.is_read" class="bookmark-row__unread" title="Unread"></span>{{ bookmark.title }}
       </a>
       <p class="bookmark-row__detail">
@@ -72,24 +75,8 @@ watch(
       <time class="tabular-nums">{{ createdAt }}</time>
     </div>
 
-    <div class="bookmark-row__actions">
-      <button
-        type="button"
-        @click="emit('toggle-favorite', bookmark.id)"
-        class="text-action bookmark-row__star"
-        :class="{ 'is-on': bookmark.is_favorite }"
-        :aria-pressed="!!bookmark.is_favorite"
-        :aria-label="bookmark.is_favorite ? 'Remove from favorites' : 'Add to favorites'"
-        :title="bookmark.is_favorite ? 'Remove from favorites' : 'Add to favorites'"
-      >
-        {{ bookmark.is_favorite ? '★' : '☆' }}
-      </button>
-      <button type="button" @click="emit('toggle-read', bookmark.id)" class="text-action">
-        {{ bookmark.is_read ? 'Mark unread' : 'Mark read' }}
-      </button>
-      <router-link :to="{ name: 'edit-bookmark', params: { id: bookmark.id } }" class="text-action">Edit</router-link>
-      <button type="button" @click="emit('delete', bookmark.id)" class="text-action text-action--danger">Delete</button>
-    </div>
+    <BookmarkActions class="bookmark-row__actions" :bookmark="bookmark" :disabled="disabled"
+      @toggle-read="emit('toggle-read', $event)" @toggle-favorite="emit('toggle-favorite', $event)" @delete="emit('delete', $event)" />
   </article>
 </template>
 
@@ -212,4 +199,11 @@ watch(
     white-space: normal;
   }
 }
+.bookmark-grid-card { grid-template-columns: 2rem minmax(0, 1fr); align-items: start; gap: .75rem; padding: 1rem; border: 1px solid var(--line); border-top: 3px solid color-mix(in srgb, var(--cat) var(--cat-keep), white); border-radius: 6px; background: var(--bg-surface); }
+.bookmark-grid-card .bookmark-row__title { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+.bookmark-grid-card .bookmark-row__detail { display: flex; flex-wrap: wrap; white-space: normal; gap: .4rem .6rem; margin-top: .3rem; }
+.bookmark-grid-card .bookmark-row__detail > * { flex-shrink: 1; overflow-wrap: anywhere; }
+.bookmark-grid-card .bookmark-row__description { flex-basis: 100%; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; white-space: normal; }
+.bookmark-grid-card .bookmark-row__meta { grid-column: 1 / -1; flex-wrap: wrap; gap: .5rem; margin-top: .25rem; }
+.bookmark-grid-card .bookmark-row__actions { grid-column: 1 / -1; align-self: end; border-top: 1px solid var(--line); padding-top: .5rem; margin-left: -.4rem; }
 </style>

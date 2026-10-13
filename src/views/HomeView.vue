@@ -4,13 +4,19 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBookmarkStore } from '@/stores/bookmarks'
 import BookmarkList from '@/components/BookmarkList.vue'
 import SortDropdown from '@/components/SortDropdown.vue'
+import BookmarkViewSwitcher from '@/components/BookmarkViewSwitcher.vue'
+import { useBookmarkView } from '@/composables/useBookmarkView'
 import CategoryStrip from '@/components/CategoryStrip.vue'
 
 const route = useRoute()
 const router = useRouter()
 const bookmarkStore = useBookmarkStore()
+const bookmarkView = useBookmarkView()
 const readFilter = ref(parseReadFilter(route.query.read))
-const sortOrder = ref(route.query.sort || 'newest')
+const sortOrder = computed({
+  get: () => route.query.sort || 'newest',
+  set: (sort) => router.replace({ query: { ...route.query, sort } }),
+})
 const fileInput = ref(null)
 const fileInputEnriched = ref(null)
 const isImporting = ref(false)
@@ -167,11 +173,12 @@ watch(sortOrder, loadBookmarks)
           {{ filter.label }}
         </button>
       </div>
-      <SortDropdown v-model="sortOrder" />
+      <div class="flex flex-wrap items-center gap-2"><BookmarkViewSwitcher v-model="bookmarkView" /><SortDropdown v-model="sortOrder" /></div>
     </div>
 
     <p v-if="bookmarkStore.isLoading" class="notice">Loading bookmarks…</p>
-    <BookmarkList v-else :bookmarks="bookmarkStore.bookmarks" />
+    <p v-else-if="bookmarkStore.error" class="notice" role="alert">{{ bookmarkStore.error }}</p>
+    <BookmarkList v-else :bookmarks="bookmarkStore.bookmarks" :layout="bookmarkView" @changed="loadBookmarks" />
   </div>
 
   <!-- Enriched import progress modal -->

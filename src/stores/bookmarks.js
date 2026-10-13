@@ -24,6 +24,7 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
       const queryString = params.toString()
       const url = '/api/bookmarks' + (queryString ? `?${queryString}` : '')
       const res = await fetch(url)
+      if (!res.ok) throw new Error('Failed to load bookmarks')
       bookmarks.value = await res.json()
     } catch (err) {
       error.value = err.message
@@ -94,6 +95,7 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
 
   async function toggleRead(id) {
     const res = await fetch(`/api/bookmarks/${id}/toggle-read`, { method: 'PATCH' })
+    if (!res.ok) throw new Error('Failed to update bookmark')
     const updated = await res.json()
     const idx = bookmarks.value.findIndex(b => b.id === id)
     if (idx !== -1) bookmarks.value[idx] = updated
@@ -103,6 +105,7 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
 
   async function toggleFavorite(id) {
     const res = await fetch(`/api/bookmarks/${id}/toggle-favorite`, { method: 'PATCH' })
+    if (!res.ok) throw new Error('Failed to update bookmark')
     const updated = await res.json()
     const idx = bookmarks.value.findIndex(b => b.id === id)
     if (idx !== -1) bookmarks.value[idx] = updated
@@ -110,7 +113,8 @@ export const useBookmarkStore = defineStore('bookmarks', () => {
   }
 
   async function deleteBookmark(id) {
-    await fetch(`/api/bookmarks/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/bookmarks/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete bookmark')
     bookmarks.value = bookmarks.value.filter(b => b.id !== id)
     await fetchReadingStats()
   }

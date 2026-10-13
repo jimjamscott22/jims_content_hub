@@ -1,7 +1,9 @@
 <script setup>
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { categoryColor } from '@/utils/categoryColor'
 
+const route = useRoute()
 const props = defineProps({
   bookmarks: { type: Array, required: true },
 })
@@ -35,7 +37,7 @@ const segments = computed(() => {
       :is="segment.id ? 'router-link' : 'span'"
       v-for="segment in segments"
       :key="segment.id ?? 'none'"
-      :to="segment.id ? { name: 'category', params: { id: segment.id } } : undefined"
+      :to="segment.id ? { name: 'category', params: { id: segment.id }, query: { view: route.query.view } } : undefined"
       class="category-strip__segment"
       :style="{ flexGrow: segment.count, background: segment.color }"
       :title="segment.label"

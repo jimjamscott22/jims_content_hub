@@ -15,7 +15,7 @@ const themeButtonLabel = computed(() =>
 )
 
 function handleSearch() {
-  router.push({ name: 'home', query: searchQuery.value ? { search: searchQuery.value } : {} })
+  router.push({ name: 'home', query: { ...route.query, search: searchQuery.value || undefined } })
 }
 
 function handleThemeToggle() {

@@ -45,7 +45,7 @@ function isReadingActive(state) {
       <ul>
         <li>
           <router-link
-            to="/"
+            :to="{ name: 'home', query: { view: route.query.view } }"
             class="side-link"
             :class="{ 'is-active': route.name === 'home' && !route.query.favorites && !route.query.tag }"
           >
@@ -54,7 +54,7 @@ function isReadingActive(state) {
         </li>
         <li>
           <router-link
-            :to="{ name: 'home', query: { favorites: '1' } }"
+            :to="{ name: 'home', query: { favorites: '1', view: route.query.view } }"
             class="side-link"
             :class="{ 'is-active': route.query.favorites === '1' }"
           >
@@ -100,7 +100,7 @@ function isReadingActive(state) {
       <ul>
         <li v-for="cat in categoryStore.categories" :key="cat.id">
           <router-link
-            :to="{ name: 'category', params: { id: cat.id } }"
+            :to="{ name: 'category', params: { id: cat.id }, query: { view: route.query.view } }"
             class="side-link"
             :class="{ 'is-active': route.name === 'category' && Number(route.params.id) === cat.id }"
           >
@@ -128,7 +128,7 @@ function isReadingActive(state) {
         <router-link
           v-for="tag in tagStore.tags"
           :key="tag.id"
-          :to="{ name: 'home', query: { tag: tag.id, tag_name: tag.name } }"
+          :to="{ name: 'home', query: { tag: tag.id, tag_name: tag.name, view: route.query.view } }"
           class="side-tag"
           :class="{ 'is-active': route.query.tag == tag.id }"
         >

@@ -97,6 +97,16 @@ Then set `DB_PASSWORD=secret` in your `.env`. The container persists data in a D
 
 ---
 
+## Content Views
+
+Use **List**, **Table**, or **Grid** above the bookmarks on the library and category pages:
+
+- **List** keeps the original compact bookmark rows.
+- **Table** compares bookmark titles, categories, tags, read status, and saved dates in columns. On smaller screens, scroll the table horizontally.
+- **Grid** shows cards with titles, descriptions, tags, and category details. Cards adapt to the available width.
+
+Every view supports favorites, read status, editing, and deletion. Switching views preserves filters and sorting; the view is stored in the URL so reloads and shared links retain it. Search and sidebar navigation carry the selected view across library and category pages.
+
 ## Importing Browser Bookmarks
 
 1. Export your bookmarks from your browser as an HTML file (all major browsers support this).
