@@ -31,57 +31,66 @@ watch(
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 border-b border-[var(--line)]/80 glass">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:gap-4">
-      <router-link to="/" class="group flex min-w-0 items-center gap-3 whitespace-nowrap">
-        <div class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-500 to-teal-700 text-lg text-white shadow-lg shadow-cyan-700/35 transition-transform group-hover:scale-105">
-          J
-        </div>
-        <div class="min-w-0">
-          <p class="truncate text-lg font-semibold leading-tight text-[var(--ink-strong)]">Jim's Content Hub</p>
-          <p class="text-xs text-[var(--ink-muted)]">Bookmarks, reading list, and web notes</p>
-        </div>
+  <header class="sticky top-0 z-40 border-b border-[var(--line)] bg-[var(--bg-page)]">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:gap-5">
+      <router-link to="/" class="flex min-w-0 items-center gap-2.5 whitespace-nowrap">
+        <span class="brand-ribbon" aria-hidden="true"></span>
+        <span class="brand-name truncate">Jim's content hub</span>
       </router-link>
-      <form @submit.prevent="handleSearch" class="mx-auto hidden w-full max-w-xl md:block">
-        <div class="group flex items-center gap-2 rounded-xl border border-[var(--line)] bg-white px-3 py-2 shadow-sm transition-all focus-within:border-cyan-400 focus-within:shadow-cyan-200/60">
-          <span class="text-slate-400">⌕</span>
+      <form @submit.prevent="handleSearch" role="search" class="mx-auto hidden w-full max-w-xl md:block">
+        <label class="search-box">
+          <span class="sr-only">Search bookmarks</span>
           <input
             v-model="searchQuery"
             type="search"
-            placeholder="Search bookmarks, urls, or notes..."
-            class="ui-focus-ring w-full border-0 bg-transparent p-0 text-[15px] text-[var(--ink-strong)] placeholder:text-slate-400"
+            placeholder="Search titles, URLs and descriptions"
+            class="ui-focus-ring w-full border-0 bg-transparent p-0 text-[15px] text-[var(--ink-strong)] placeholder:text-[var(--ink-muted)]"
           />
-        </div>
+        </label>
       </form>
-      <button
-        type="button"
-        @click="handleThemeToggle"
-        :aria-label="themeButtonLabel"
-        :title="themeButtonLabel"
-        class="inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm font-semibold text-[var(--ink-strong)] shadow-sm transition-colors hover:bg-[var(--bg-soft)]"
-      >
-        <span aria-hidden="true">{{ isDarkMode ? '☀' : '🌙' }}</span>
-        <span class="hidden md:inline">{{ isDarkMode ? 'Light' : 'Dark' }}</span>
-      </button>
-      <router-link
-        to="/add"
-        class="rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-cyan-700/35 transition-all hover:-translate-y-0.5 hover:from-cyan-500 hover:to-teal-600 whitespace-nowrap"
-      >
-        + Add Bookmark
-      </router-link>
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          @click="handleThemeToggle"
+          :aria-label="themeButtonLabel"
+          :title="themeButtonLabel"
+          class="btn"
+        >
+          {{ isDarkMode ? 'Light' : 'Dark' }}
+        </button>
+        <router-link to="/add" class="btn btn-primary">Add bookmark</router-link>
+      </div>
     </div>
     <div class="mx-auto max-w-7xl px-4 pb-3 md:hidden">
-      <form @submit.prevent="handleSearch">
-        <div class="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-white px-3 py-2 shadow-sm">
-          <span class="text-slate-400">⌕</span>
+      <form @submit.prevent="handleSearch" role="search">
+        <label class="search-box">
+          <span class="sr-only">Search bookmarks</span>
           <input
             v-model="searchQuery"
             type="search"
-            placeholder="Search bookmarks..."
-            class="ui-focus-ring w-full border-0 bg-transparent p-0 text-[15px] text-[var(--ink-strong)] placeholder:text-slate-400"
+            placeholder="Search bookmarks"
+            class="ui-focus-ring w-full border-0 bg-transparent p-0 text-[15px] text-[var(--ink-strong)] placeholder:text-[var(--ink-muted)]"
           />
-        </div>
+        </label>
       </form>
     </div>
   </header>
 </template>
+
+<style scoped>
+.brand-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* A ribbon bookmark: the one place the ribbon colour appears outside unread marks. */
+.brand-ribbon {
+  width: 0.8rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+  background: var(--ribbon);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+}
+</style>

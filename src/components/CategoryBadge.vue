@@ -1,11 +1,15 @@
 <script setup>
+import { categoryColor } from '@/utils/categoryColor'
+
 defineProps({
   name: { type: String, required: true },
+  categoryId: { type: Number, default: null },
 })
 </script>
 
 <template>
-  <span class="inline-block rounded-full border border-cyan-100 bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-700">
+  <span class="inline-flex items-center gap-1.5">
+    <span class="cat-dot" :style="{ '--cat': categoryColor(categoryId) }" aria-hidden="true"></span>
     {{ name }}
   </span>
 </template>

@@ -4,6 +4,7 @@ import { useBookmarkStore } from '@/stores/bookmarks'
 import { useCategoryStore } from '@/stores/categories'
 import BookmarkList from '@/components/BookmarkList.vue'
 import SortDropdown from '@/components/SortDropdown.vue'
+import { categoryColor } from '@/utils/categoryColor'
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
@@ -29,11 +30,14 @@ watch(sortOrder, loadBookmarks)
 
 <template>
   <div>
-    <div class="mb-4 flex items-center justify-between">
-      <h1 class="text-3xl font-bold">{{ categoryName }}</h1>
+    <div class="mb-4 flex items-end justify-between gap-3">
+      <h1 class="page-title flex items-center gap-3">
+        <span class="cat-dot" :style="{ '--cat': categoryColor(id) }" aria-hidden="true"></span>
+        {{ categoryName }}
+      </h1>
       <SortDropdown v-model="sortOrder" />
     </div>
-    <p v-if="bookmarkStore.isLoading" class="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-[var(--ink-muted)]">Loading...</p>
+    <p v-if="bookmarkStore.isLoading" class="notice">Loading bookmarks…</p>
     <BookmarkList v-else :bookmarks="bookmarkStore.bookmarks" />
   </div>
 </template>

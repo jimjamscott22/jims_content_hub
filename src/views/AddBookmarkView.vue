@@ -14,10 +14,10 @@ async function handleSubmit(data) {
 
 <template>
   <div>
-    <h1 class="mb-2 text-3xl font-bold">Add Bookmark</h1>
-    <p class="mb-6 text-sm text-[var(--ink-muted)]">Drop in a URL and let auto-fill pull details for you.</p>
+    <h1 class="page-title mb-1">Add bookmark</h1>
+    <p class="mb-6 text-[var(--ink-muted)]">Paste a URL and autofill fetches the title and description.</p>
     <BookmarkForm @submit="handleSubmit">
-      Add Bookmark
+      Add bookmark
     </BookmarkForm>
   </div>
 </template>

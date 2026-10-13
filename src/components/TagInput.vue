@@ -86,13 +86,14 @@ function handleBlur() {
       <span
         v-for="tag in selectedTags"
         :key="tag.id"
-        class="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-700"
+        class="inline-flex items-center gap-1 rounded bg-[var(--bg-soft)] py-0.5 pl-2 pr-1 text-sm"
       >
         #{{ tag.name }}
         <button
           type="button"
           @click="removeTag(tag.id)"
-          class="ml-0.5 cursor-pointer text-violet-400 transition-colors hover:text-violet-700"
+          :aria-label="`Remove tag ${tag.name}`"
+          class="cursor-pointer rounded px-1 text-[var(--ink-muted)] hover:text-[var(--danger)]"
         >&times;</button>
       </span>
     </div>
@@ -103,34 +104,34 @@ function handleBlur() {
         @blur="handleBlur"
         @keydown="handleKeydown"
         type="text"
-        placeholder="Type to search or create tags..."
-        class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm"
+        aria-label="Tags"
+        placeholder="Type to find a tag or create one"
+        class="field"
       />
       <div
         v-if="showSuggestions"
-        class="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-auto rounded-lg border border-[var(--line)] bg-white shadow-lg"
+        class="sheet absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-auto"
       >
         <button
           v-for="tag in suggestions"
           :key="tag.id"
           type="button"
           @mousedown.prevent="addTag(tag.id)"
-          class="w-full cursor-pointer px-3 py-1.5 text-left text-sm text-[var(--ink-strong)] transition-colors hover:bg-violet-50"
+          class="w-full cursor-pointer px-3 py-1.5 text-left text-sm hover:bg-[var(--bg-soft)]"
         >
           #{{ tag.name }}
-          <span class="ml-1 text-xs text-[var(--ink-muted)]">({{ tag.bookmark_count ?? 0 }})</span>
+          <span class="ml-1 text-xs text-[var(--ink-muted)]">{{ tag.bookmark_count ?? 0 }}</span>
         </button>
         <button
           v-if="inputValue.trim() && !exactMatch"
           type="button"
           @mousedown.prevent="createAndAdd"
-          class="flex w-full cursor-pointer items-center gap-1 border-t border-[var(--line)] px-3 py-1.5 text-left text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-50"
+          class="w-full cursor-pointer border-t border-[var(--line)] px-3 py-1.5 text-left text-sm font-semibold text-[var(--primary-strong)] hover:bg-[var(--bg-soft)]"
           :disabled="isCreating"
         >
-          <span>+ Create "{{ inputValue.trim() }}"</span>
+          Create tag "{{ inputValue.trim() }}"
         </button>
       </div>
     </div>
   </div>
 </template>
-

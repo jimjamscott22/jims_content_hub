@@ -24,22 +24,21 @@ async function handleDelete(id) {
 </script>
 
 <template>
-  <TransitionGroup v-if="bookmarks.length" name="fade-slide" tag="div" class="space-y-3">
+  <TransitionGroup v-if="bookmarks.length" name="fade-slide" tag="div" class="border-t border-[var(--line)]">
     <BookmarkCard
-      v-for="(bookmark, idx) in bookmarks"
+      v-for="bookmark in bookmarks"
       :key="bookmark.id"
       :bookmark="bookmark"
-      :index="idx"
       @toggle-read="handleToggleRead"
       @toggle-favorite="handleToggleFavorite"
       @delete="handleDelete"
     />
   </TransitionGroup>
-  <div v-else class="grid place-items-center rounded-2xl border border-dashed border-[var(--line)] bg-white px-4 py-14 text-center">
-    <div class="max-w-sm">
-      <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-[var(--bg-soft)] text-2xl">🔎</div>
-      <p class="text-lg font-semibold">No bookmarks found</p>
-      <p class="text-sm text-[var(--ink-muted)]">Try another search, toggle filters, or add your first bookmark.</p>
-    </div>
+  <div v-else class="notice py-10 text-center">
+    <p class="text-lg font-semibold text-[var(--ink-strong)]">No bookmarks match</p>
+    <p class="mt-1 text-sm">
+      Clear the search or filter, or
+      <router-link to="/add" class="font-semibold text-[var(--primary-strong)] underline">add a bookmark</router-link>.
+    </p>
   </div>
 </template>

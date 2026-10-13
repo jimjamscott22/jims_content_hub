@@ -1,18 +1,15 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import CategoryBadge from './CategoryBadge.vue'
 import TagBadge from './TagBadge.vue'
+import { categoryColor } from '@/utils/categoryColor'
 
 const props = defineProps({
   bookmark: { type: Object, required: true },
-  index: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['toggle-read', 'toggle-favorite', 'delete'])
-const cardRef = ref(null)
-const isVisible = ref(false)
 const hasIconError = ref(false)
-let observer
 
 const host = computed(() => {
   try {
@@ -23,17 +20,13 @@ const host = computed(() => {
 })
 
 const previewLabel = computed(() => host.value.slice(0, 2).toUpperCase())
-const createdAt = computed(() => new Date(props.bookmark.created_at).toLocaleDateString())
-
-function cardGradient(seed) {
-  let hash = 0
-  for (let i = 0; i < seed.length; i += 1) hash = seed.charCodeAt(i) + ((hash << 5) - hash)
-  const hueA = Math.abs(hash) % 360
-  const hueB = (hueA + 42) % 360
-  return `linear-gradient(135deg, hsl(${hueA} 78% 90%), hsl(${hueB} 84% 84%))`
-}
-
-const previewStyle = computed(() => ({ background: cardGradient(props.bookmark.url || props.bookmark.title || 'bookmark') }))
+const createdAt = computed(() =>
+  new Date(props.bookmark.created_at).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }),
+)
 const iconUrl = computed(() => (hasIconError.value ? '' : props.bookmark.icon_url || ''))
 
 watch(
@@ -42,113 +35,180 @@ watch(
     hasIconError.value = false
   },
 )
-
-onMounted(() => {
-  observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          isVisible.value = true
-          observer?.disconnect()
-        }
-      })
-    },
-    { threshold: 0.2 },
-  )
-
-  if (cardRef.value) observer.observe(cardRef.value)
-})
-
-onBeforeUnmount(() => {
-  observer?.disconnect()
-})
 </script>
 
 <template>
   <article
-    ref="cardRef"
-    class="bookmark-card rounded-2xl border border-[var(--line)] bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-22px_rgba(14,36,51,0.65)]"
-    :style="{ animationDelay: `${index * 55}ms` }"
-    :class="{ 'opacity-70': bookmark.is_read, 'is-visible': isVisible }"
+    class="bookmark-row"
+    :class="{ 'is-read': bookmark.is_read }"
+    :style="{ '--cat': categoryColor(bookmark.category_id) }"
   >
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div class="flex min-w-0 flex-1 gap-3">
-        <div class="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/80 shadow-sm">
-          <div class="absolute inset-0" :style="previewStyle"></div>
-          <img
-            v-if="iconUrl"
-            :src="iconUrl"
-            :alt="`${host} icon`"
-            class="absolute inset-0 h-full w-full bg-white object-contain p-2"
-            loading="lazy"
-            @error="hasIconError = true"
-          />
-          <span v-else class="absolute inset-0 grid place-items-center text-sm font-bold tracking-wide text-[var(--ink-strong)]">{{ previewLabel }}</span>
-        </div>
-        <div class="min-w-0">
-        <a :href="bookmark.url" target="_blank" rel="noopener"
-             class="block truncate text-lg font-semibold text-[var(--primary-strong)] hover:text-[var(--primary)] hover:underline">
-          {{ bookmark.title }}
-        </a>
-          <p class="truncate text-sm text-[var(--ink-muted)]">{{ host }}</p>
-        <p v-if="bookmark.description" class="mt-1 line-clamp-2 text-sm text-[var(--ink-muted)]">
-          {{ bookmark.description }}
-        </p>
-          <div class="mt-2 flex flex-wrap items-center gap-2">
-          <CategoryBadge v-if="bookmark.category_name" :name="bookmark.category_name" />
-            <TagBadge v-for="tag in bookmark.tags" :key="tag.id" :name="tag.name" />
-            <span class="rounded-full bg-[var(--bg-soft)] px-2 py-0.5 text-xs font-medium text-[var(--ink-muted)]">{{ createdAt }}</span>
-            <span class="rounded-full bg-[var(--bg-soft)] px-2 py-0.5 text-xs font-medium text-[var(--ink-muted)]">{{ host }}</span>
-          </div>
-        </div>
-      </div>
-      <div class="flex shrink-0 flex-wrap items-center gap-2 pl-0 sm:pl-3">
-        <button @click="emit('toggle-favorite', bookmark.id)"
-                class="cursor-pointer rounded-lg border px-2 py-1 text-sm font-semibold transition-colors"
-                :class="bookmark.is_favorite
-                  ? 'border-amber-200 bg-amber-50 text-amber-500'
-                  : 'border-[var(--line)] bg-[var(--bg-soft)] text-[var(--ink-muted)] hover:text-amber-400'"
-                :title="bookmark.is_favorite ? 'Remove from favorites' : 'Add to favorites'">
-          {{ bookmark.is_favorite ? '★' : '☆' }}
-        </button>
-        <button @click="emit('toggle-read', bookmark.id)"
-                class="cursor-pointer rounded-lg border px-2 py-1 text-sm font-semibold transition-colors"
-                :class="bookmark.is_read
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                  : 'border-amber-200 bg-amber-50 text-amber-700'">
-          {{ bookmark.is_read ? 'Read' : 'Unread' }}
-        </button>
-        <router-link :to="{ name: 'edit-bookmark', params: { id: bookmark.id } }"
-                    class="rounded-lg border border-sky-200 bg-sky-50 px-2 py-1 text-sm font-semibold text-sky-700 transition-colors hover:bg-sky-100">
-          Edit
-        </router-link>
-        <button @click="emit('delete', bookmark.id)"
-                class="cursor-pointer rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100">
-          Delete
-        </button>
-      </div>
+    <div class="bookmark-row__icon">
+      <img
+        v-if="iconUrl"
+        :src="iconUrl"
+        alt=""
+        class="h-full w-full object-contain"
+        loading="lazy"
+        @error="hasIconError = true"
+      />
+      <span v-else aria-hidden="true">{{ previewLabel }}</span>
+    </div>
+
+    <div class="min-w-0">
+      <a :href="bookmark.url" target="_blank" rel="noopener" class="bookmark-row__title">
+        <span v-if="!bookmark.is_read" class="bookmark-row__unread" title="Unread"></span>{{ bookmark.title }}
+      </a>
+      <p class="bookmark-row__detail">
+        <span class="font-medium">{{ host }}</span>
+        <TagBadge v-for="tag in bookmark.tags" :key="tag.id" :name="tag.name" />
+        <span v-if="bookmark.description" class="bookmark-row__description">{{ bookmark.description }}</span>
+      </p>
+    </div>
+
+    <div class="bookmark-row__meta">
+      <CategoryBadge v-if="bookmark.category_name" :name="bookmark.category_name" :category-id="bookmark.category_id" />
+      <time class="tabular-nums">{{ createdAt }}</time>
+    </div>
+
+    <div class="bookmark-row__actions">
+      <button
+        type="button"
+        @click="emit('toggle-favorite', bookmark.id)"
+        class="text-action bookmark-row__star"
+        :class="{ 'is-on': bookmark.is_favorite }"
+        :aria-pressed="!!bookmark.is_favorite"
+        :aria-label="bookmark.is_favorite ? 'Remove from favorites' : 'Add to favorites'"
+        :title="bookmark.is_favorite ? 'Remove from favorites' : 'Add to favorites'"
+      >
+        {{ bookmark.is_favorite ? '★' : '☆' }}
+      </button>
+      <button type="button" @click="emit('toggle-read', bookmark.id)" class="text-action">
+        {{ bookmark.is_read ? 'Mark unread' : 'Mark read' }}
+      </button>
+      <router-link :to="{ name: 'edit-bookmark', params: { id: bookmark.id } }" class="text-action">Edit</router-link>
+      <button type="button" @click="emit('delete', bookmark.id)" class="text-action text-action--danger">Delete</button>
     </div>
   </article>
 </template>
 
 <style scoped>
-.bookmark-card {
-  opacity: 0;
-  transform: translateY(8px) scale(0.99);
+.bookmark-row {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.25rem 0.875rem;
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid color-mix(in srgb, var(--cat) var(--cat-keep), white);
+  padding: 0.55rem 0.25rem 0.55rem 0.75rem;
 }
 
-.bookmark-card.is-visible {
-  animation: cardIn 320ms ease both;
+.bookmark-row:hover {
+  background: color-mix(in srgb, var(--bg-soft) 55%, transparent);
 }
 
-@keyframes cardIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.99);
+.bookmark-row__icon {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--bg-soft);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.bookmark-row__title {
+  display: block;
+  overflow: hidden;
+  font-weight: 700;
+  color: var(--ink-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bookmark-row__title:hover {
+  color: var(--primary-strong);
+  text-decoration: underline;
+}
+
+.bookmark-row.is-read .bookmark-row__title {
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
+.bookmark-row__unread {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  background: var(--ribbon);
+  vertical-align: 0.12em;
+}
+
+.bookmark-row__detail {
+  display: flex;
+  gap: 0.75rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.bookmark-row__detail > * {
+  flex-shrink: 0;
+}
+
+.bookmark-row__detail > .bookmark-row__description {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookmark-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.bookmark-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.bookmark-row__star {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.bookmark-row__star.is-on {
+  color: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .bookmark-row {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+
+  .bookmark-row__meta,
+  .bookmark-row__actions {
+    grid-column: 2;
+  }
+
+  .bookmark-row__actions {
+    margin-left: -0.4rem;
+  }
+
+  .bookmark-row__title {
+    white-space: normal;
   }
 }
 </style>

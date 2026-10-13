@@ -23,14 +23,13 @@ async function handleSubmit(data) {
 
 <template>
   <div>
-    <h1 class="mb-2 text-3xl font-bold">Edit Bookmark</h1>
-    <p class="mb-6 text-sm text-[var(--ink-muted)]">Update link details, category, and read status.</p>
-    <p v-if="bookmarkStore.isLoading" class="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-[var(--ink-muted)]">Loading...</p>
-    <p v-else-if="bookmarkStore.error" class="text-red-500">{{ bookmarkStore.error }}</p>
+    <h1 class="page-title mb-6">Edit bookmark</h1>
+    <p v-if="bookmarkStore.isLoading" class="notice">Loading bookmark…</p>
+    <p v-else-if="bookmarkStore.error" class="notice text-[var(--danger)]">{{ bookmarkStore.error }}</p>
     <BookmarkForm v-else-if="bookmarkStore.currentBookmark"
                   :initial-data="bookmarkStore.currentBookmark"
                   @submit="handleSubmit">
-      Save Changes
+      Save changes
     </BookmarkForm>
   </div>
 </template>

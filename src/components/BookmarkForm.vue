@@ -67,33 +67,29 @@ function handleSubmit() {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="panel max-w-2xl space-y-4 p-4 md:p-5">
+  <form @submit.prevent="handleSubmit" class="max-w-2xl space-y-4">
     <div>
-      <label class="mb-1 block text-sm font-semibold">URL *</label>
+      <label for="bookmark-url" class="field-label">URL</label>
       <div class="flex gap-2">
-        <input v-model="form.url" type="url" required
+        <input id="bookmark-url" v-model="form.url" type="url" required
                @blur="!form.title && fetchMetadata()"
-               class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2" />
-        <button type="button" @click="fetchMetadata" :disabled="isFetching"
-                class="cursor-pointer whitespace-nowrap rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 transition-colors hover:bg-cyan-100 disabled:opacity-50">
-          {{ isFetching ? '...' : 'Auto-fill' }}
+               class="field" />
+        <button type="button" @click="fetchMetadata" :disabled="isFetching" class="btn">
+          {{ isFetching ? 'Fetching…' : 'Autofill' }}
         </button>
       </div>
     </div>
     <div>
-      <label class="mb-1 block text-sm font-semibold">Title *</label>
-      <input v-model="form.title" type="text" required
-             class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2" />
+      <label for="bookmark-title" class="field-label">Title</label>
+      <input id="bookmark-title" v-model="form.title" type="text" required class="field" />
     </div>
     <div>
-      <label class="mb-1 block text-sm font-semibold">Description</label>
-      <textarea v-model="form.description" rows="3"
-                class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2"></textarea>
+      <label for="bookmark-description" class="field-label">Description</label>
+      <textarea id="bookmark-description" v-model="form.description" rows="3" class="field"></textarea>
     </div>
     <div>
-      <label class="mb-1 block text-sm font-semibold">Category</label>
-      <select v-model="form.category_id"
-              class="ui-focus-ring w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2">
+      <label for="bookmark-category" class="field-label">Category</label>
+      <select id="bookmark-category" v-model="form.category_id" class="field">
         <option value="">Uncategorized</option>
         <option v-for="cat in categoryStore.categories" :key="cat.id" :value="cat.id">
           {{ cat.name }}
@@ -101,21 +97,20 @@ function handleSubmit() {
       </select>
     </div>
     <div>
-      <label class="mb-1 block text-sm font-semibold">Tags</label>
+      <span class="field-label">Tags</span>
       <TagInput v-model="form.tag_ids" />
     </div>
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--bg-soft)] px-3 py-2">
-        <input v-model="form.is_read" type="checkbox" id="is_read" class="h-4 w-4 rounded accent-cyan-600" />
-        <label for="is_read" class="text-sm font-medium">Mark as read</label>
-      </div>
-      <div class="flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--bg-soft)] px-3 py-2">
-        <input v-model="form.is_favorite" type="checkbox" id="is_favorite" class="h-4 w-4 rounded accent-amber-500" />
-        <label for="is_favorite" class="text-sm font-medium">⭐ Favorite</label>
-      </div>
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+      <label class="flex items-center gap-2">
+        <input v-model="form.is_read" type="checkbox" class="h-4 w-4 accent-[var(--primary-strong)]" />
+        Mark as read
+      </label>
+      <label class="flex items-center gap-2">
+        <input v-model="form.is_favorite" type="checkbox" class="h-4 w-4 accent-[var(--primary-strong)]" />
+        Favorite
+      </label>
     </div>
-    <button type="submit"
-            class="cursor-pointer rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 px-4 py-2 font-semibold text-white shadow-md shadow-cyan-700/35 transition-all hover:-translate-y-0.5 hover:from-cyan-500 hover:to-teal-600">
+    <button type="submit" class="btn btn-primary">
       <slot>Save</slot>
     </button>
   </form>

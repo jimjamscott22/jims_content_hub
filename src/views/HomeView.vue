@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useBookmarkStore } from '@/stores/bookmarks'
 import BookmarkList from '@/components/BookmarkList.vue'
 import SortDropdown from '@/components/SortDropdown.vue'
+import CategoryStrip from '@/components/CategoryStrip.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,23 +16,23 @@ const fileInputEnriched = ref(null)
 const isImporting = ref(false)
 const enrichProgress = ref(null) // { current, total, url } or null when idle
 
-const stats = computed(() => {
+const summary = computed(() => {
   const total = bookmarkStore.bookmarks.length
-  const read = bookmarkStore.bookmarks.filter((bookmark) => bookmark.is_read).length
-  const unread = total - read
-  const categories = new Set(
-    bookmarkStore.bookmarks
-      .map((bookmark) => bookmark.category_name)
-      .filter(Boolean),
-  ).size
-
-  return { total, read, unread, categories }
+  const unread = bookmarkStore.bookmarks.filter((bookmark) => !bookmark.is_read).length
+  const noun = total === 1 ? 'bookmark' : 'bookmarks'
+  return `${total.toLocaleString()} ${noun}, ${unread.toLocaleString()} unread`
 })
 
+const readFilters = [
+  { value: undefined, label: 'All' },
+  { value: 0, label: 'Unread' },
+  { value: 1, label: 'Read' },
+]
+
 const viewTitle = computed(() => {
-  if (route.query.favorites === '1') return '⭐ Favorites'
-  if (route.query.tag) return `Tag: ${route.query.tag_name || 'Tagged'}`
-  return 'All Bookmarks'
+  if (route.query.favorites === '1') return 'Favorites'
+  if (route.query.tag) return route.query.tag_name ? `Tagged #${route.query.tag_name}` : 'Tagged'
+  return route.query.search ? `Results for \u201c${route.query.search}\u201d` : 'All bookmarks'
 })
 
 function loadBookmarks() {
@@ -126,111 +127,74 @@ watch(sortOrder, loadBookmarks)
 </script>
 
 <template>
-  <div class="space-y-5">
-    <div class="hero-panel rounded-2xl border border-[var(--line)] p-4 md:p-5">
-      <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 class="text-2xl font-bold leading-tight md:text-3xl">{{ viewTitle }}</h1>
-          <p class="text-sm text-[var(--ink-muted)]">Organize your links, reading queue, and notes in one place.</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <input type="file" ref="fileInput" accept=".html" @change="handleImport" class="hidden" />
-          <input type="file" ref="fileInputEnriched" accept=".html" @change="handleEnrichedImport" class="hidden" />
-          <button
-            @click="fileInput.click()"
-            class="flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-700/30 transition-all hover:-translate-y-0.5 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-60"
-            :disabled="isImporting || !!enrichProgress"
-          >
-            <span v-if="isImporting" class="animate-spin">⟳</span>
-            <span>{{ isImporting ? 'Importing...' : 'Import HTML' }}</span>
-          </button>
-          <button
-            @click="fileInputEnriched.click()"
-            class="flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-violet-700 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-violet-700/30 transition-all hover:-translate-y-0.5 hover:from-violet-500 hover:to-violet-600 disabled:opacity-60"
-            :disabled="isImporting || !!enrichProgress"
-            title="Import and auto-fetch title, description & category for every bookmark"
-          >
-            <span>Import + Autofill</span>
-          </button>
-          <SortDropdown v-model="sortOrder" />
-          <button
-            @click="setReadFilter(undefined)"
-            :class="readFilter === undefined ? 'border-transparent bg-cyan-600 text-white shadow-sm shadow-cyan-600/30' : 'border-[var(--line)] bg-white text-[var(--ink-muted)] hover:bg-[var(--bg-soft)]'"
-            class="cursor-pointer rounded-xl border px-3 py-2 text-sm font-semibold transition-colors"
-          >
-            All
-          </button>
-          <button
-            @click="setReadFilter(0)"
-            :class="readFilter === 0 ? 'border-transparent bg-cyan-600 text-white shadow-sm shadow-cyan-600/30' : 'border-[var(--line)] bg-white text-[var(--ink-muted)] hover:bg-[var(--bg-soft)]'"
-            class="cursor-pointer rounded-xl border px-3 py-2 text-sm font-semibold transition-colors"
-          >
-            Unread
-          </button>
-          <button
-            @click="setReadFilter(1)"
-            :class="readFilter === 1 ? 'border-transparent bg-cyan-600 text-white shadow-sm shadow-cyan-600/30' : 'border-[var(--line)] bg-white text-[var(--ink-muted)] hover:bg-[var(--bg-soft)]'"
-            class="cursor-pointer rounded-xl border px-3 py-2 text-sm font-semibold transition-colors"
-          >
-            Read
-          </button>
-        </div>
+  <div>
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h1 class="page-title">{{ viewTitle }}</h1>
+        <p v-if="!bookmarkStore.isLoading" class="mt-1 text-[var(--ink-muted)]">{{ summary }}</p>
       </div>
-      <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <div class="stat-card stat-card--cyan rounded-xl border px-3 py-2">
-          <p class="text-xs uppercase tracking-wide">Total</p>
-          <p class="text-xl font-bold">{{ stats.total }}</p>
-        </div>
-        <div class="stat-card stat-card--amber rounded-xl border px-3 py-2">
-          <p class="text-xs uppercase tracking-wide">Unread</p>
-          <p class="text-xl font-bold">{{ stats.unread }}</p>
-        </div>
-        <div class="stat-card stat-card--emerald rounded-xl border px-3 py-2">
-          <p class="text-xs uppercase tracking-wide">Read</p>
-          <p class="text-xl font-bold">{{ stats.read }}</p>
-        </div>
-        <div class="stat-card stat-card--sky rounded-xl border px-3 py-2">
-          <p class="text-xs uppercase tracking-wide">Categories</p>
-          <p class="text-xl font-bold">{{ stats.categories }}</p>
-        </div>
+      <div class="flex flex-wrap gap-2">
+        <input type="file" ref="fileInput" accept=".html" @change="handleImport" class="hidden" />
+        <input type="file" ref="fileInputEnriched" accept=".html" @change="handleEnrichedImport" class="hidden" />
+        <button type="button" @click="fileInput.click()" class="btn" :disabled="isImporting || !!enrichProgress">
+          {{ isImporting ? 'Importing…' : 'Import HTML' }}
+        </button>
+        <button
+          type="button"
+          @click="fileInputEnriched.click()"
+          class="btn"
+          :disabled="isImporting || !!enrichProgress"
+          title="Import and fetch the title, description and category for every bookmark"
+        >
+          Import and autofill
+        </button>
       </div>
     </div>
-    <p v-if="bookmarkStore.isLoading" class="rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-[var(--ink-muted)]">
-      Loading bookmarks...
-    </p>
+
+    <CategoryStrip v-if="!bookmarkStore.isLoading" :bookmarks="bookmarkStore.bookmarks" class="mb-5" />
+
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="read-tabs" role="group" aria-label="Filter by read status">
+        <button
+          v-for="filter in readFilters"
+          :key="filter.label"
+          type="button"
+          @click="setReadFilter(filter.value)"
+          class="read-tabs__tab"
+          :class="{ 'is-active': readFilter === filter.value }"
+          :aria-pressed="readFilter === filter.value"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+      <SortDropdown v-model="sortOrder" />
+    </div>
+
+    <p v-if="bookmarkStore.isLoading" class="notice">Loading bookmarks…</p>
     <BookmarkList v-else :bookmarks="bookmarkStore.bookmarks" />
   </div>
 
   <!-- Enriched import progress modal -->
   <Teleport to="body">
     <Transition name="fade">
-      <div
-        v-if="enrichProgress"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      >
-        <div class="w-full max-w-md rounded-2xl border border-[var(--line)] bg-white p-6 shadow-2xl">
-          <h2 class="mb-1 text-lg font-bold text-[var(--ink-strong)]">Importing with Autofill</h2>
-          <p class="mb-4 text-sm text-[var(--ink-muted)]">
-            Fetching metadata for each bookmark. Please wait&hellip;
-          </p>
+      <div v-if="enrichProgress" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div class="sheet w-full max-w-md p-6" role="dialog" aria-modal="true" aria-labelledby="import-progress-title">
+          <h2 id="import-progress-title" class="mb-1 text-lg font-bold">Importing and autofilling</h2>
+          <p class="mb-4 text-sm text-[var(--ink-muted)]">Fetching details for each bookmark. Keep this tab open.</p>
 
           <div class="mb-2 flex items-center justify-between text-sm font-medium text-[var(--ink-muted)]">
             <span>Progress</span>
-            <span>{{ enrichProgress.current }} / {{ enrichProgress.total }}</span>
+            <span class="tabular-nums">{{ enrichProgress.current }} of {{ enrichProgress.total }}</span>
           </div>
 
-          <div class="h-2.5 w-full overflow-hidden rounded-full bg-[var(--bg-soft)]">
+          <div class="h-2 w-full overflow-hidden rounded-sm bg-[var(--bg-soft)]">
             <div
-              class="h-full rounded-full bg-gradient-to-r from-violet-500 to-violet-600 transition-all duration-300"
+              class="h-full bg-[var(--primary-strong)] transition-all duration-300"
               :style="{ width: enrichProgress.total ? `${(enrichProgress.current / enrichProgress.total) * 100}%` : '0%' }"
             />
           </div>
 
-          <p
-            v-if="enrichProgress.url"
-            class="mt-3 truncate text-xs text-[var(--ink-muted)]"
-            :title="enrichProgress.url"
-          >
+          <p v-if="enrichProgress.url" class="mt-3 truncate text-xs text-[var(--ink-muted)]" :title="enrichProgress.url">
             {{ enrichProgress.url }}
           </p>
         </div>
@@ -247,5 +211,28 @@ watch(sortOrder, loadBookmarks)
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.read-tabs {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.read-tabs__tab {
+  border-bottom: 2px solid transparent;
+  padding: 0.25rem 0;
+  font-weight: 500;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.read-tabs__tab:hover {
+  color: var(--ink-strong);
+}
+
+.read-tabs__tab.is-active {
+  border-bottom-color: var(--ink-strong);
+  font-weight: 700;
+  color: var(--ink-strong);
 }
 </style>
