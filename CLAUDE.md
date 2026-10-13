@@ -24,16 +24,21 @@ Full-stack bookmark manager: Vue 3 SPA frontend + Express.js REST API backend, b
 - Path alias: `@` → `./src`
 - ES modules throughout (`"type": "module"` in package.json)
 
-**Stores** (`src/stores/`): `bookmarkStore`, `categoryStore`, `tagStore` — each handles CRUD and fetches via native `fetch('/api/...')`
+**Stores** (`src/stores/`): `useBookmarkStore`, `useCategoryStore`, `useTagStore` (files `bookmarks.js`, `categories.js`, `tags.js`) handle CRUD and fetch via native `fetch('/api/...')`; `useThemeStore` manages light/dark/system mode (persisted in localStorage under `jch-theme-mode`)
 
-**Routes** (`src/router/index.js`): `/` (home), `/add`, `/edit/:id`, `/category/:id` — add/edit/category views are lazy-loaded
+**Routes** (`src/router/index.js`): `/` (home), `/add`, `/edit/:id`, `/category/:id`, `/board` (wide layout via `meta.layoutWide`) — all but home are lazy-loaded
+
+**Utils** (`src/utils/`): `safeUrl()` must wrap any user-supplied bookmark URL bound to an `href` (blocks `javascript:`/`data:`); `categoryColor.js` derives category colors for the shelf UI
 
 ### Backend (`server/`)
 
 - **Express 5** with modular route files in `server/routes/` (bookmarks, categories, tags, metadata)
 - **MySQL** via `mysql2/promise` connection pool — configured through `.env` variables (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`)
 - Database schema auto-creates on startup via `initializeDatabase()` in `server/db.js`
-- `server/db.js` exports `query`, `queryOne`, `execute`, and `transaction` helpers
+- `server/db.js` exports `query`, `queryOne`, `execute`, and `withTransaction` helpers (default export `db`; routes call `db.query(...)`, `db.withTransaction(async (tx) => tx.execute(...))`)
+- `server/utils/`: `siteMetadata.js` (cheerio-based title/description/icon fetch, used by `/api/metadata` and imports) and `bookmarkImport.js` (`parseBookmarkHtml`, `enrichBookmarks` for Netscape-format browser exports)
+- Bookmark URLs are validated as http(s) server-side in create/update (400 otherwise); import parsing also keeps only http(s) links
+- `POST /api/bookmarks/import-enriched` streams progress as Server-Sent Events (`start`/`progress`/`done`/`error` messages) while fetching metadata and auto-matching categories by name
 
 **Key tables**: `bookmarks`, `categories`, `tags`, `bookmark_tags` (many-to-many junction)
 
