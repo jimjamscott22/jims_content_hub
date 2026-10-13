@@ -1,8 +1,8 @@
 import { Router } from 'express'
 import multer from 'multer'
-import { load } from 'cheerio'
 import db from '../db.js'
 import { fetchSiteMetadata } from '../utils/siteMetadata.js'
+import { enrichBookmarks, parseBookmarkHtml } from '../utils/bookmarkImport.js'
 
 const router = Router()
 const upload = multer({ storage: multer.memoryStorage() })
@@ -100,18 +100,7 @@ router.post('/import-enriched', upload.single('file'), async (req, res) => {
   const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`)
 
   try {
-    const html = req.file.buffer.toString('utf-8')
-    const $ = load(html)
-    const parsed = []
-
-    $('a').each((_, element) => {
-      const el = $(element)
-      const url = el.attr('href')
-      const title = el.text().trim() || url
-      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-        parsed.push({ url, title })
-      }
-    })
+    const parsed = parseBookmarkHtml(req.file.buffer.toString('utf-8'))
 
     if (parsed.length === 0) {
       send({ type: 'error', message: 'No valid bookmarks found in file' })
@@ -121,38 +110,9 @@ router.post('/import-enriched', upload.single('file'), async (req, res) => {
     send({ type: 'start', total: parsed.length })
 
     const categories = await db.query('SELECT id, name FROM categories')
-
-    const CONCURRENCY = 5
-    const TIMEOUT_MS = 8000
-    const enriched = new Array(parsed.length)
-
-    const fetchOne = async (item, index) => {
-      let title = item.title
-      let description = ''
-      let icon_url = null
-      let category_id = null
-
-      try {
-        const metadata = await fetchSiteMetadata(item.url, TIMEOUT_MS)
-        title = metadata.title || item.title
-        description = metadata.description || ''
-        icon_url = metadata.icon_url || null
-      } catch {
-        // timeout or fetch error — keep original title, empty description
-      }
-
-      const text = (title + ' ' + description).toLowerCase()
-      const match = categories.find((c) => text.includes(c.name.toLowerCase()))
-      if (match) category_id = match.id
-
-      enriched[index] = { url: item.url, title, description, icon_url, category_id }
-      send({ type: 'progress', current: index + 1, total: parsed.length, url: item.url })
-    }
-
-    for (let i = 0; i < parsed.length; i += CONCURRENCY) {
-      const batch = parsed.slice(i, i + CONCURRENCY)
-      await Promise.all(batch.map((item, j) => fetchOne(item, i + j)))
-    }
+    const enriched = await enrichBookmarks(parsed, categories, {
+      onProgress: (progress) => send({ type: 'progress', ...progress }),
+    })
 
     await db.withTransaction(async (tx) => {
       for (const bookmark of enriched) {
@@ -179,19 +139,7 @@ router.post('/import', upload.single('file'), async (req, res) => {
   }
 
   try {
-    const html = req.file.buffer.toString('utf-8')
-    const $ = load(html)
-    const bookmarksToInsert = []
-
-    $('a').each((_, element) => {
-      const el = $(element)
-      const url = el.attr('href')
-      const title = el.text().trim() || url
-
-      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-        bookmarksToInsert.push({ url, title })
-      }
-    })
+    const bookmarksToInsert = parseBookmarkHtml(req.file.buffer.toString('utf-8'))
 
     if (bookmarksToInsert.length === 0) {
       return res.status(400).json({ error: 'No valid bookmarks found in file' })

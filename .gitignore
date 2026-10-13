@@ -48,3 +48,5 @@ server/data/*.sqlite-shm
 # Environment variables
 .env
 .env.production
+graphify-out/
+
