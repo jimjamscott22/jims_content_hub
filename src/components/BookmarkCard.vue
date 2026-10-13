@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import CategoryBadge from './CategoryBadge.vue'
 import TagBadge from './TagBadge.vue'
 import { categoryColor } from '@/utils/categoryColor'
+import { safeUrl } from '@/utils/safeUrl'
 
 const props = defineProps({
   bookmark: { type: Object, required: true },
@@ -56,7 +57,7 @@ watch(
     </div>
 
     <div class="min-w-0">
-      <a :href="bookmark.url" target="_blank" rel="noopener" class="bookmark-row__title">
+      <a :href="safeUrl(bookmark.url)" target="_blank" rel="noopener" class="bookmark-row__title">
         <span v-if="!bookmark.is_read" class="bookmark-row__unread" title="Unread"></span>{{ bookmark.title }}
       </a>
       <p class="bookmark-row__detail">

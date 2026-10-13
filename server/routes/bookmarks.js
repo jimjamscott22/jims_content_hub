@@ -69,6 +69,15 @@ function handleServerError(res, error, message) {
   res.status(500).json({ error: message })
 }
 
+// Bookmark URLs end up in an href, so only web links are stored (no javascript:, data:, ...).
+function isWebUrl(url) {
+  try {
+    return ['http:', 'https:'].includes(new URL(url).protocol)
+  } catch {
+    return false
+  }
+}
+
 async function fetchMissingSiteMetadata(url) {
   try {
     return await fetchSiteMetadata(url)
@@ -310,6 +319,10 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'URL and title are required' })
   }
 
+  if (!isWebUrl(url)) {
+    return res.status(400).json({ error: 'URL must be an http or https link' })
+  }
+
   try {
     const metadata = icon_url ? null : await fetchMissingSiteMetadata(url)
     const bookmarkId = await db.withTransaction(async (tx) => {
@@ -356,6 +369,10 @@ router.post('/', async (req, res) => {
 // PUT /api/bookmarks/:id
 router.put('/:id', async (req, res) => {
   const { url, title, description, icon_url, category_id, is_read, is_favorite, tag_ids } = req.body
+
+  if (url !== undefined && !isWebUrl(url)) {
+    return res.status(400).json({ error: 'URL must be an http or https link' })
+  }
 
   try {
     const existing = await db.queryOne('SELECT * FROM bookmarks WHERE id = ?', [req.params.id])

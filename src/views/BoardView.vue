@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useBookmarkStore } from '@/stores/bookmarks'
 import { useCategoryStore } from '@/stores/categories'
 import { categoryColor } from '@/utils/categoryColor'
+import { safeUrl } from '@/utils/safeUrl'
 
 const router = useRouter()
 const bookmarkStore = useBookmarkStore()
@@ -154,7 +155,7 @@ function goEdit(id) {
       <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <li v-for="b in pinnedItems" :key="b.id">
           <a
-            :href="b.url"
+            :href="safeUrl(b.url)"
             target="_blank"
             rel="noopener"
             class="group flex gap-3 rounded-md border border-[var(--line)] p-3 hover:border-[var(--line-strong)] hover:bg-[var(--bg-soft)]"
@@ -245,7 +246,7 @@ function goEdit(id) {
               </div>
               <div class="min-w-0 flex-1">
                 <a
-                  :href="bookmark.url"
+                  :href="safeUrl(bookmark.url)"
                   target="_blank"
                   rel="noopener"
                   class="line-clamp-2 text-sm leading-snug hover:underline"
